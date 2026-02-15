@@ -239,6 +239,18 @@ def api_analyze_article(article_id: int):
     return {"article_id": article_id, "analysis": analysis}
 
 
+class TextAnalysisRequest(BaseModel):
+    title: str
+    content: str
+
+
+@app.post("/api/analyze-text")
+def api_analyze_text(request: TextAnalysisRequest):
+    """Analyze manually provided text (e.g. from ET Prime/premium articles)."""
+    analysis = analyze_news_sentiment(request.title, request.content)
+    return {"analysis": analysis}
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # PREDICTIONS & ANALYTICS ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════
