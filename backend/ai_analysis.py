@@ -29,7 +29,7 @@ MAX_DAILY_REQUESTS = 1400  # buffer below 1500 limit
 def _configure():
     """Configure the Gemini API."""
     if not GEMINI_API_KEY:
-        raise ValueError("GEMINI_API_KEY not set. Add it to your .env file.")
+        raise ValueError("GEMINI_API_KEY not set. Set it in .env (local) or Vercel Environment Variables.")
     genai.configure(api_key=GEMINI_API_KEY)
 
 
