@@ -13,6 +13,12 @@ import threading
 import time
 from datetime import datetime
 
+import sys
+import os
+
+# Ensure the backend directory is in the python path for relative imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from database import init_db, add_to_watchlist, remove_from_watchlist, get_watchlist
 from database import save_article, save_analysis, get_news
 from database import save_pattern, get_patterns
