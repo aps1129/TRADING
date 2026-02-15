@@ -1,13 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, TrendingUp, TrendingDown, Zap, Brain, RefreshCw,
-    ArrowUpRight, ArrowDownRight, Minus, AlertTriangle, ChevronDown, ChevronUp,
-    Target, Shield, BarChart3, Activity
-} from 'lucide-react';
-import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    BarChart, Bar, Line, ComposedChart, ReferenceLine
+    Line, ComposedChart, ReferenceLine
 } from 'recharts';
 import { analyzeStock, getPrediction, explainPattern, addToWatchlist } from '../api';
 
@@ -81,14 +76,11 @@ export default function StockDetail() {
 
     if (loading) return <StockSkeleton />;
     if (error) return (
-        <div className="text-center py-20 animate-fade-in">
-            <div className="w-20 h-20 rounded-3xl bg-red-500/10 flex items-center justify-center mx-auto mb-6">
-                <AlertTriangle size={32} className="text-red-400" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">Stock Not Found</h2>
-            <p className="text-sm text-slate-500 mb-4">{error}</p>
+        <div className="text-center py-16 animate-in">
+            <h2 className="text-base font-semibold mb-2" style={{ color: 'var(--text-white)' }}>Stock Not Found</h2>
+            <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>{error}</p>
             <button onClick={() => navigate('/')} className="btn btn-primary">
-                <ArrowLeft size={16} /> Go Back
+                Back to Dashboard
             </button>
         </div>
     );
@@ -102,115 +94,117 @@ export default function StockDetail() {
         bbLower: indicators?.bb_lower?.[stock.history.indexOf(d)] ?? null,
     })) || [];
 
-    // Keep only recent data for clean chart
     const chartSlice = chartData.slice(-90);
-
     const isUp = stock?.change >= 0;
     const periods = ['1mo', '3mo', '6mo', '1y', '2y'];
 
     return (
-        <div className="space-y-6 animate-fade-in-up">
+        <div className="space-y-4 animate-up">
             {/* ─── Header ──────────────────────────────────────────── */}
-            <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="flex items-start justify-between flex-wrap gap-3 py-2">
                 <div>
                     <button onClick={() => navigate('/')}
-                        className="text-xs text-slate-500 hover:text-white flex items-center gap-1 mb-2 transition-colors">
-                        <ArrowLeft size={14} />
-                        Back to Dashboard
+                        className="text-[11px] flex items-center gap-1 mb-1.5"
+                        style={{ color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none' }}>
+                        &larr; Dashboard
                     </button>
                     <div className="flex items-center gap-3 flex-wrap">
-                        <h1 className="text-2xl sm:text-3xl font-bold">{stock?.symbol}</h1>
-                        <span className="text-sm text-slate-500">{stock?.name}</span>
+                        <h1 className="text-lg font-bold mono" style={{ color: 'var(--text-white)' }}>{stock?.symbol}</h1>
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{stock?.name}</span>
                     </div>
-                    <div className="flex items-center gap-4 mt-2">
-                        <span className="text-3xl sm:text-4xl font-bold font-mono">
+                    <div className="flex items-center gap-3 mt-1">
+                        <span className="text-2xl font-bold mono" style={{ color: 'var(--text-white)' }}>
                             ₹{stock?.current_price?.toLocaleString('en-IN')}
                         </span>
-                        <div className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-sm font-semibold
-              ${isUp ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'}`}>
-                            {isUp ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
+                        <span className={`badge text-xs ${isUp ? 'badge-bullish' : 'badge-bearish'}`}>
                             {isUp ? '+' : ''}{stock?.change?.toFixed(2)} ({isUp ? '+' : ''}{stock?.change_percent?.toFixed(2)}%)
-                        </div>
+                        </span>
                     </div>
-                    <div className="flex gap-4 mt-2 text-xs text-slate-500">
+                    <div className="flex gap-3 mt-1.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>
                         {stock?.sector !== 'N/A' && <span>{stock?.sector}</span>}
                         {stock?.pe_ratio > 0 && <span>PE: {stock?.pe_ratio?.toFixed(1)}</span>}
                         {stock?.market_cap > 0 && <span>MCap: ₹{formatMarketCap(stock.market_cap)}</span>}
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button onClick={handleAddToWatchlist} className="btn btn-secondary text-xs">
+                    <button onClick={handleAddToWatchlist} className="btn btn-secondary">
                         + Watchlist
                     </button>
-                    <button onClick={loadAnalysis} className="btn btn-ghost text-xs">
-                        <RefreshCw size={14} />
+                    <button onClick={loadAnalysis} className="btn btn-ghost">
+                        Refresh
                     </button>
                 </div>
             </div>
 
             {/* ─── Period Selector ─────────────────────────────────── */}
-            <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] w-fit border border-white/[0.05]">
+            <div className="flex gap-0.5 p-0.5 rounded w-fit"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                 {periods.map(p => (
                     <button key={p} onClick={() => setPeriod(p)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all
-              ${period === p ? 'bg-blue-500/20 text-blue-400' : 'text-slate-500 hover:text-white'}`}>
+                        className="px-3 py-1 rounded text-[11px] font-medium"
+                        style={{
+                            background: period === p ? 'var(--accent-bg)' : 'transparent',
+                            color: period === p ? 'var(--accent)' : 'var(--text-secondary)',
+                            transition: 'all 0.1s',
+                            cursor: 'pointer',
+                            border: 'none',
+                        }}>
                         {p.toUpperCase()}
                     </button>
                 ))}
             </div>
 
             {/* ─── Price Chart ─────────────────────────────────────── */}
-            <div className="glass-card p-4 sm:p-6">
-                <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-                    <Activity size={16} className="text-blue-400" />
-                    Price Chart
-                    <span className="text-xs text-slate-600 font-normal ml-2">
-                        SMA 50 (yellow) • SMA 200 (cyan) • Bollinger Bands (purple)
-                    </span>
-                </h2>
-                <div className="h-[350px] sm:h-[420px]">
+            <div className="card p-4">
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-xs font-semibold uppercase tracking-wider"
+                        style={{ color: 'var(--text-secondary)' }}>
+                        Price Chart
+                    </h2>
+                    <div className="flex gap-3 text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                        <span>SMA 50</span>
+                        <span>SMA 200</span>
+                        <span>BB</span>
+                    </div>
+                </div>
+                <div style={{ height: '360px' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={chartSlice}>
-                            <defs>
-                                <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.06)" />
-                            <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#64748b' }}
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(120,123,134,0.08)" />
+                            <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#4A4E5A', fontFamily: 'Roboto Mono' }}
                                 tickFormatter={(d) => d.slice(5)}
                                 interval="preserveStartEnd" />
                             <YAxis domain={['auto', 'auto']}
-                                tick={{ fontSize: 10, fill: '#64748b' }}
+                                tick={{ fontSize: 10, fill: '#4A4E5A', fontFamily: 'Roboto Mono' }}
                                 tickFormatter={(v) => `₹${v}`}
                                 width={60} />
                             <Tooltip content={<ChartTooltip />} />
 
                             {/* Bollinger Bands */}
-                            <Area type="monotone" dataKey="bbUpper" stroke="rgba(139,92,246,0.3)"
+                            <Area type="monotone" dataKey="bbUpper" stroke="rgba(120,123,134,0.2)"
                                 fill="none" strokeWidth={1} dot={false} />
-                            <Area type="monotone" dataKey="bbLower" stroke="rgba(139,92,246,0.3)"
+                            <Area type="monotone" dataKey="bbLower" stroke="rgba(120,123,134,0.2)"
                                 fill="none" strokeWidth={1} dot={false} />
 
                             {/* Moving Averages */}
-                            <Line type="monotone" dataKey="sma50" stroke="#fbbf24"
-                                strokeWidth={1.5} dot={false} connectNulls />
-                            <Line type="monotone" dataKey="sma200" stroke="#06b6d4"
-                                strokeWidth={1.5} dot={false} connectNulls />
+                            <Line type="monotone" dataKey="sma50" stroke="#F59E0B"
+                                strokeWidth={1} dot={false} connectNulls opacity={0.6} />
+                            <Line type="monotone" dataKey="sma200" stroke="#06B6D4"
+                                strokeWidth={1} dot={false} connectNulls opacity={0.6} />
 
                             {/* Price */}
-                            <Area type="monotone" dataKey="close" stroke="#3b82f6"
-                                fill="url(#priceGrad)" strokeWidth={2} dot={false} />
+                            <Area type="monotone" dataKey="close" stroke={isUp ? '#26A69A' : '#EF5350'}
+                                fill={isUp ? 'rgba(38,166,154,0.08)' : 'rgba(239,83,80,0.08)'}
+                                strokeWidth={1.5} dot={false} />
 
                             {/* Support & Resistance */}
                             {indicators?.support && (
-                                <ReferenceLine y={indicators.support} stroke="#10b981"
-                                    strokeDasharray="5 5" opacity={0.5} />
+                                <ReferenceLine y={indicators.support} stroke="#26A69A"
+                                    strokeDasharray="4 4" opacity={0.4} />
                             )}
                             {indicators?.resistance && (
-                                <ReferenceLine y={indicators.resistance} stroke="#ef4444"
-                                    strokeDasharray="5 5" opacity={0.5} />
+                                <ReferenceLine y={indicators.resistance} stroke="#EF5350"
+                                    strokeDasharray="4 4" opacity={0.4} />
                             )}
                         </ComposedChart>
                     </ResponsiveContainer>
@@ -218,43 +212,43 @@ export default function StockDetail() {
             </div>
 
             {/* ─── Indicators + Patterns ───────────────────────────── */}
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid lg:grid-cols-2 gap-3">
                 {/* Technical Indicators */}
-                <div className="glass-card p-5 sm:p-6">
-                    <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-                        <BarChart3 size={16} className="text-cyan-400" />
-                        Technical Indicators
-                    </h2>
-                    <div className="grid grid-cols-2 gap-4">
-                        <IndicatorCard label="RSI (14)" value={indicators?.current_rsi?.toFixed(1)}
-                            status={indicators?.current_rsi > 70 ? 'danger' : indicators?.current_rsi < 30 ? 'success' : 'neutral'} />
-                        <IndicatorCard label="MACD" value={indicators?.current_macd?.toFixed(2)}
-                            status={indicators?.current_macd > 0 ? 'success' : 'danger'} />
-                        <IndicatorCard label="SMA 50" value={`₹${indicators?.current_sma_50?.toFixed(0) || '—'}`}
-                            status={stock?.current_price > (indicators?.current_sma_50 || 0) ? 'success' : 'danger'} />
-                        <IndicatorCard label="SMA 200" value={`₹${indicators?.current_sma_200?.toFixed(0) || '—'}`}
-                            status={stock?.current_price > (indicators?.current_sma_200 || 0) ? 'success' : 'danger'} />
-                        <IndicatorCard label="Support" value={`₹${indicators?.support?.toLocaleString('en-IN') || '—'}`}
-                            status="success" />
-                        <IndicatorCard label="Resistance" value={`₹${indicators?.resistance?.toLocaleString('en-IN') || '—'}`}
-                            status="danger" />
+                <div className="card">
+                    <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                        <h2 className="text-xs font-semibold uppercase tracking-wider"
+                            style={{ color: 'var(--text-secondary)' }}>
+                            Technical Indicators
+                        </h2>
+                    </div>
+                    <div className="grid grid-cols-2 gap-px p-px" style={{ background: 'var(--border)' }}>
+                        <IndicatorCell label="RSI (14)" value={indicators?.current_rsi?.toFixed(1)}
+                            signal={indicators?.current_rsi > 70 ? 'bearish' : indicators?.current_rsi < 30 ? 'bullish' : 'neutral'} />
+                        <IndicatorCell label="MACD" value={indicators?.current_macd?.toFixed(2)}
+                            signal={indicators?.current_macd > 0 ? 'bullish' : 'bearish'} />
+                        <IndicatorCell label="SMA 50" value={`₹${indicators?.current_sma_50?.toFixed(0) || '—'}`}
+                            signal={stock?.current_price > (indicators?.current_sma_50 || 0) ? 'bullish' : 'bearish'} />
+                        <IndicatorCell label="SMA 200" value={`₹${indicators?.current_sma_200?.toFixed(0) || '—'}`}
+                            signal={stock?.current_price > (indicators?.current_sma_200 || 0) ? 'bullish' : 'bearish'} />
+                        <IndicatorCell label="Support" value={`₹${indicators?.support?.toLocaleString('en-IN') || '—'}`} signal="bullish" />
+                        <IndicatorCell label="Resistance" value={`₹${indicators?.resistance?.toLocaleString('en-IN') || '—'}`} signal="bearish" />
                     </div>
 
-                    {/* RSI Gauge */}
+                    {/* RSI Bar */}
                     {indicators?.current_rsi && (
-                        <div className="mt-5 p-3 rounded-xl bg-white/[0.02]">
-                            <div className="flex justify-between text-xs text-slate-500 mb-2">
+                        <div className="px-4 py-3" style={{ borderTop: '1px solid var(--border)' }}>
+                            <div className="flex justify-between text-[10px] mb-1.5" style={{ color: 'var(--text-muted)' }}>
                                 <span>Oversold (30)</span>
-                                <span className="font-medium text-white">RSI: {indicators.current_rsi.toFixed(1)}</span>
+                                <span className="mono" style={{ color: 'var(--text-primary)' }}>RSI: {indicators.current_rsi.toFixed(1)}</span>
                                 <span>Overbought (70)</span>
                             </div>
-                            <div className="h-2 bg-white/[0.05] rounded-full overflow-hidden">
-                                <div className="h-full rounded-full transition-all duration-500"
+                            <div className="confidence-bar">
+                                <div className="confidence-bar-fill"
                                     style={{
                                         width: `${indicators.current_rsi}%`,
-                                        background: indicators.current_rsi > 70 ? 'linear-gradient(90deg, #fbbf24, #ef4444)'
-                                            : indicators.current_rsi < 30 ? 'linear-gradient(90deg, #10b981, #06b6d4)'
-                                                : 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+                                        background: indicators.current_rsi > 70 ? 'var(--bearish)'
+                                            : indicators.current_rsi < 30 ? 'var(--bullish)'
+                                                : 'var(--accent)',
                                     }}
                                 />
                             </div>
@@ -263,61 +257,57 @@ export default function StockDetail() {
                 </div>
 
                 {/* Detected Patterns */}
-                <div className="glass-card p-5 sm:p-6">
-                    <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-                        <Zap size={16} className="text-purple-400" />
-                        Detected Patterns
-                        <span className="text-xs text-slate-600 font-normal ml-auto">
+                <div className="card">
+                    <div className="px-4 py-3 flex items-center justify-between"
+                        style={{ borderBottom: '1px solid var(--border)' }}>
+                        <h2 className="text-xs font-semibold uppercase tracking-wider"
+                            style={{ color: 'var(--text-secondary)' }}>
+                            Detected Patterns
+                        </h2>
+                        <span className="mono text-[11px]" style={{ color: 'var(--text-muted)' }}>
                             {patterns?.length || 0} found
                         </span>
-                    </h2>
+                    </div>
                     {(!patterns || patterns.length === 0) ? (
-                        <p className="text-sm text-slate-500 text-center py-8">
+                        <p className="text-xs text-center py-8" style={{ color: 'var(--text-muted)' }}>
                             No significant patterns detected for this period.
                         </p>
                     ) : (
-                        <div className="space-y-2">
+                        <div>
                             {patterns.map((p, i) => (
-                                <div key={i} className="rounded-xl bg-white/[0.02] overflow-hidden">
+                                <div key={i} style={i > 0 ? { borderTop: '1px solid var(--border)' } : {}}>
                                     <button
                                         onClick={() => loadPatternExplanation(p.type)}
-                                        className="w-full flex items-center justify-between p-3 hover:bg-white/[0.03] transition-colors text-left">
+                                        className="w-full flex items-center justify-between px-4 py-2.5 text-left cursor-pointer"
+                                        style={{ background: 'transparent', border: 'none', transition: 'background 0.1s' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center
-                        ${p.signal === 'bullish' ? 'bg-emerald-500/15' : p.signal === 'bearish' ? 'bg-red-500/15' : 'bg-amber-500/15'}`}>
-                                                {p.signal === 'bullish' ? <TrendingUp size={14} className="text-emerald-400" /> :
-                                                    p.signal === 'bearish' ? <TrendingDown size={14} className="text-red-400" /> :
-                                                        <Minus size={14} className="text-amber-400" />}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">{p.type}</p>
-                                                <p className="text-xs text-slate-500">{p.description}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`badge text-[10px]
-                        ${p.signal === 'bullish' ? 'badge-bullish' : p.signal === 'bearish' ? 'badge-bearish' : 'badge-neutral'}`}>
+                                            <span className={`badge text-[11px] ${p.signal === 'bullish' ? 'badge-bullish' : p.signal === 'bearish' ? 'badge-bearish' : 'badge-neutral'}`}>
                                                 {p.signal}
                                             </span>
-                                            {expandedPattern === p.type ? <ChevronUp size={14} className="text-slate-500" /> : <ChevronDown size={14} className="text-slate-500" />}
+                                            <div>
+                                                <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{p.type}</p>
+                                                <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{p.description}</p>
+                                            </div>
                                         </div>
+                                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                                            {expandedPattern === p.type ? '-' : '+'}
+                                        </span>
                                     </button>
                                     {expandedPattern === p.type && (
-                                        <div className="px-3 pb-3 animate-fade-in">
-                                            <div className="p-3 rounded-lg bg-white/[0.03] text-sm text-slate-300 leading-relaxed">
+                                        <div className="px-4 pb-3 animate-in">
+                                            <div className="ai-border text-xs leading-relaxed"
+                                                style={{ color: 'var(--text-secondary)' }}>
+                                                <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--ai-purple)' }}>
+                                                    AI Analysis
+                                                </p>
                                                 {explainLoading === p.type ? (
-                                                    <div className="flex items-center gap-2 text-slate-500">
-                                                        <RefreshCw size={14} className="animate-spin" />
-                                                        <span className="text-xs">Getting AI explanation...</span>
-                                                    </div>
+                                                    <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                                                        Generating explanation...
+                                                    </span>
                                                 ) : (
-                                                    <div>
-                                                        <div className="flex items-center gap-1.5 mb-2 text-xs text-blue-400">
-                                                            <Brain size={12} />
-                                                            AI Explanation
-                                                        </div>
-                                                        {patternExplanations[p.type] || 'Click to get AI explanation'}
-                                                    </div>
+                                                    patternExplanations[p.type] || 'Click to get AI explanation'
                                                 )}
                                             </div>
                                         </div>
@@ -330,91 +320,88 @@ export default function StockDetail() {
             </div>
 
             {/* ─── AI Prediction Card ──────────────────────────────── */}
-            <div className="glass-card p-5 sm:p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base font-semibold flex items-center gap-2">
-                        <Brain size={16} className="text-purple-400" />
+            <div className="card">
+                <div className="px-4 py-3 flex items-center justify-between"
+                    style={{ borderBottom: '1px solid var(--border)' }}>
+                    <h2 className="text-xs font-semibold uppercase tracking-wider"
+                        style={{ color: 'var(--ai-purple)' }}>
                         AI Prediction
                     </h2>
                     <button onClick={loadPrediction}
-                        className="btn btn-primary text-xs"
+                        className="btn btn-ai"
                         disabled={predLoading}>
-                        {predLoading ? (
-                            <><RefreshCw size={14} className="animate-spin" /> Analyzing...</>
-                        ) : (
-                            <><Zap size={14} /> Generate Prediction</>
-                        )}
+                        {predLoading ? 'Analyzing...' : 'Generate Prediction'}
                     </button>
                 </div>
 
                 {!prediction && !predLoading && (
-                    <div className="text-center py-10">
-                        <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4 animate-float">
-                            <Brain size={28} className="text-purple-400" />
-                        </div>
-                        <p className="text-sm text-slate-500 mb-1">
+                    <div className="text-center py-10 px-4">
+                        <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
                             Click "Generate Prediction" to get AI-powered analysis
                         </p>
-                        <p className="text-xs text-slate-600">
+                        <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                             Combines technical patterns, indicators, and news sentiment
                         </p>
                     </div>
                 )}
 
                 {prediction && !prediction.error && (
-                    <div className="animate-fade-in-up space-y-5">
+                    <div className="p-4 space-y-4 animate-up">
                         {/* Direction + Confidence */}
                         <div className="flex items-center gap-4 flex-wrap">
-                            <div className={`inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-lg
-                ${prediction.direction === 'bullish' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                                    : prediction.direction === 'bearish' ? 'bg-red-500/15 text-red-400 border border-red-500/20'
-                                        : 'bg-amber-500/15 text-amber-400 border border-amber-500/20'}`}>
-                                {prediction.direction === 'bullish' ? <TrendingUp size={22} /> :
-                                    prediction.direction === 'bearish' ? <TrendingDown size={22} /> :
-                                        <Minus size={22} />}
+                            <span className={`badge text-sm font-bold px-4 py-1.5 ${prediction.direction === 'bullish' ? 'badge-bullish'
+                                : prediction.direction === 'bearish' ? 'badge-bearish'
+                                    : 'badge-neutral'}`}>
                                 {prediction.direction?.toUpperCase()}
-                            </div>
+                            </span>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase tracking-wider">Confidence</p>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-24 h-2 bg-white/[0.05] rounded-full overflow-hidden">
-                                        <div className="h-full rounded-full transition-all"
+                                <p className="text-[11px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Confidence</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <div className="confidence-bar" style={{ width: '80px' }}>
+                                        <div className="confidence-bar-fill"
                                             style={{
                                                 width: `${prediction.confidence}%`,
-                                                background: prediction.confidence > 70 ? '#10b981'
-                                                    : prediction.confidence > 40 ? '#fbbf24' : '#ef4444',
+                                                background: prediction.confidence > 70 ? 'var(--bullish)'
+                                                    : prediction.confidence > 40 ? 'var(--neutral)' : 'var(--bearish)',
                                             }} />
                                     </div>
-                                    <span className="text-sm font-mono font-bold">{prediction.confidence}%</span>
+                                    <span className="mono text-xs font-bold" style={{ color: 'var(--text-white)' }}>
+                                        {prediction.confidence}%
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Reasoning */}
-                        <div className="p-4 rounded-xl bg-white/[0.02]">
-                            <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Analysis</p>
-                            <p className="text-sm text-slate-300 leading-relaxed">{prediction.reasoning}</p>
+                        <div className="ai-border">
+                            <p className="text-[11px] uppercase tracking-wider mb-1.5" style={{ color: 'var(--ai-purple)' }}>
+                                AI Analysis
+                            </p>
+                            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                                {prediction.reasoning}
+                            </p>
                             {prediction.short_term_outlook && (
-                                <p className="text-sm text-slate-400 mt-2 italic">
-                                    📊 {prediction.short_term_outlook}
+                                <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                                    Short-term: {prediction.short_term_outlook}
                                 </p>
                             )}
                         </div>
 
                         {/* Key Levels */}
                         {prediction.key_levels && Object.keys(prediction.key_levels).length > 0 && (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px rounded overflow-hidden"
+                                style={{ background: 'var(--border)' }}>
                                 {prediction.key_levels.support && (
-                                    <LevelCard label="Support" value={prediction.key_levels.support} color="green" icon={Shield} />
+                                    <LevelCell label="Support" value={prediction.key_levels.support} type="bullish" />
                                 )}
                                 {prediction.key_levels.resistance && (
-                                    <LevelCard label="Resistance" value={prediction.key_levels.resistance} color="red" icon={Target} />
+                                    <LevelCell label="Resistance" value={prediction.key_levels.resistance} type="bearish" />
                                 )}
                                 {prediction.key_levels.stop_loss && (
-                                    <LevelCard label="Stop Loss" value={prediction.key_levels.stop_loss} color="amber" icon={AlertTriangle} />
+                                    <LevelCell label="Stop Loss" value={prediction.key_levels.stop_loss} type="neutral" />
                                 )}
                                 {prediction.key_levels.target && (
-                                    <LevelCard label="Target" value={prediction.key_levels.target} color="blue" icon={TrendingUp} />
+                                    <LevelCell label="Target" value={prediction.key_levels.target} type="accent" />
                                 )}
                             </div>
                         )}
@@ -422,11 +409,13 @@ export default function StockDetail() {
                         {/* Risk Factors */}
                         {prediction.risk_factors?.length > 0 && (
                             <div>
-                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Risk Factors</p>
-                                <div className="space-y-1.5">
+                                <p className="text-[11px] uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                                    Risk Factors
+                                </p>
+                                <div className="space-y-1">
                                     {prediction.risk_factors.map((r, i) => (
-                                        <div key={i} className="flex items-start gap-2 text-sm text-slate-400">
-                                            <AlertTriangle size={12} className="text-amber-500 mt-1 shrink-0" />
+                                        <div key={i} className="flex items-start gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                            <span style={{ color: 'var(--neutral)' }}>*</span>
                                             <span>{r}</span>
                                         </div>
                                     ))}
@@ -435,14 +424,18 @@ export default function StockDetail() {
                         )}
 
                         {/* Disclaimer */}
-                        <p className="text-xs text-slate-600 p-3 rounded-lg bg-white/[0.01] border border-white/[0.03]">
-                            ⚠️ {prediction.disclaimer || 'AI-generated analysis for educational purposes only. Not financial advice.'}
+                        <p className="text-[11px] p-3 rounded" style={{
+                            color: 'var(--text-muted)',
+                            background: 'var(--bg-surface)',
+                            border: '1px solid var(--border)',
+                        }}>
+                            {prediction.disclaimer || 'AI-generated analysis for educational purposes only. Not financial advice.'}
                         </p>
                     </div>
                 )}
 
                 {prediction?.error && (
-                    <div className="text-center py-6 text-red-400 text-sm">
+                    <div className="text-center py-6 text-xs" style={{ color: 'var(--bearish)' }}>
                         {prediction.error}
                     </div>
                 )}
@@ -458,46 +451,45 @@ function ChartTooltip({ active, payload, label }) {
     const d = payload[0]?.payload;
     return (
         <div className="chart-tooltip">
-            <p className="text-xs text-slate-400 mb-1">{label}</p>
-            <p className="text-sm font-mono font-bold">₹{d?.close?.toLocaleString('en-IN')}</p>
-            <div className="flex gap-3 mt-1 text-xs text-slate-500">
+            <p className="text-[11px] mb-1" style={{ color: 'var(--text-muted)' }}>{label}</p>
+            <p className="mono text-xs font-bold" style={{ color: 'var(--text-white)' }}>₹{d?.close?.toLocaleString('en-IN')}</p>
+            <div className="flex gap-3 mt-1 text-[10px] mono" style={{ color: 'var(--text-secondary)' }}>
                 <span>O: ₹{d?.open?.toFixed(0)}</span>
                 <span>H: ₹{d?.high?.toFixed(0)}</span>
                 <span>L: ₹{d?.low?.toFixed(0)}</span>
             </div>
-            {d?.sma50 && <p className="text-xs text-amber-400 mt-1">SMA50: ₹{d.sma50.toFixed(0)}</p>}
+            {d?.volume && (
+                <p className="text-[10px] mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    Vol: {(d.volume / 100000).toFixed(1)}L
+                </p>
+            )}
         </div>
     );
 }
 
-function IndicatorCard({ label, value, status }) {
-    const statusColors = {
-        success: 'border-emerald-500/20 bg-emerald-500/5',
-        danger: 'border-red-500/20 bg-red-500/5',
-        neutral: 'border-slate-500/20 bg-white/[0.02]',
-    };
+function IndicatorCell({ label, value, signal }) {
+    const signalColor = signal === 'bullish' ? 'var(--bullish)' : signal === 'bearish' ? 'var(--bearish)' : 'var(--text-secondary)';
     return (
-        <div className={`p-3 rounded-xl border ${statusColors[status]}`}>
-            <p className="text-xs text-slate-500 mb-1">{label}</p>
-            <p className="text-sm font-mono font-semibold">{value || '—'}</p>
+        <div className="px-4 py-3" style={{ background: 'var(--bg-card)' }}>
+            <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{label}</p>
+            <p className="mono text-xs font-semibold mt-0.5" style={{ color: signalColor }}>{value || '—'}</p>
         </div>
     );
 }
 
-function LevelCard({ label, value, color, icon: Icon }) {
+function LevelCell({ label, value, type }) {
     const colors = {
-        green: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-        red: 'bg-red-500/10 text-red-400 border-red-500/20',
-        amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-        blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+        bullish: 'var(--bullish)',
+        bearish: 'var(--bearish)',
+        neutral: 'var(--neutral)',
+        accent: 'var(--accent)',
     };
     return (
-        <div className={`p-3 rounded-xl border ${colors[color]}`}>
-            <div className="flex items-center gap-1.5 mb-1">
-                <Icon size={12} />
-                <span className="text-xs uppercase tracking-wider">{label}</span>
-            </div>
-            <p className="text-sm font-mono font-bold">₹{typeof value === 'number' ? value.toLocaleString('en-IN') : value}</p>
+        <div className="px-4 py-3" style={{ background: 'var(--bg-card)' }}>
+            <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{label}</p>
+            <p className="mono text-xs font-bold mt-0.5" style={{ color: colors[type] }}>
+                ₹{typeof value === 'number' ? value.toLocaleString('en-IN') : value}
+            </p>
         </div>
     );
 }
@@ -511,13 +503,13 @@ function formatMarketCap(mc) {
 
 function StockSkeleton() {
     return (
-        <div className="space-y-6">
-            <div className="skeleton h-8 w-48" />
-            <div className="skeleton h-12 w-64" />
-            <div className="skeleton h-[400px] rounded-2xl" />
-            <div className="grid lg:grid-cols-2 gap-6">
-                <div className="skeleton h-64 rounded-2xl" />
-                <div className="skeleton h-64 rounded-2xl" />
+        <div className="space-y-4 pt-4">
+            <div className="skeleton h-6 w-40" />
+            <div className="skeleton h-10 w-56" />
+            <div className="skeleton h-[360px] rounded-lg" />
+            <div className="grid lg:grid-cols-2 gap-3">
+                <div className="skeleton h-52 rounded-lg" />
+                <div className="skeleton h-52 rounded-lg" />
             </div>
         </div>
     );

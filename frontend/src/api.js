@@ -32,7 +32,7 @@ export const fetchNews = () =>
 export const analyzeArticle = (articleId) =>
     api.get(`/news/${articleId}/analyze`);
 export const analyzeText = (title, content) =>
-    api.post('/api/analyze-text', { title, content });
+    api.post('/analyze-text', { title, content });
 
 // ─── Predictions & Analytics ─────────────────────────────────
 export const getPredictions = (params = {}) =>

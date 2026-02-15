@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    TrendingUp, TrendingDown, Plus, Trash2, RefreshCw, Eye,
-    ArrowUpRight, ArrowDownRight, Minus, Newspaper, Zap, AlertTriangle
-} from 'lucide-react';
 import { getDashboard, addToWatchlist, removeFromWatchlist, fetchNews } from '../api';
 
 export default function Dashboard() {
@@ -75,127 +71,121 @@ export default function Dashboard() {
     const { watchlist = [], recent_patterns = [], recent_news = [], prediction_stats = {} } = data || {};
 
     return (
-        <div className="space-y-6 animate-fade-in-up">
+        <div className="space-y-4 animate-up">
             {/* ─── Header ──────────────────────────────────────────── */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    <h1 className="text-base font-semibold" style={{ color: 'var(--text-white)' }}>
                         Dashboard
                     </h1>
-                    <p className="text-slate-500 text-sm mt-1">
-                        Your market overview at a glance
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        Market overview
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button onClick={handleFetchNews}
-                        className="btn btn-secondary text-xs"
+                        className="btn btn-secondary"
                         disabled={refreshing}>
-                        <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
                         {refreshing ? 'Fetching...' : 'Fetch News'}
                     </button>
-                    <button onClick={() => setShowAddModal(true)} className="btn btn-primary text-xs">
-                        <Plus size={14} />
-                        Add Stock
+                    <button onClick={() => setShowAddModal(true)} className="btn btn-primary">
+                        + Add Stock
                     </button>
                 </div>
             </div>
 
             {/* ─── Stat Cards ──────────────────────────────────────── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatCard
                     label="Watchlist"
                     value={watchlist.length}
                     sub="stocks tracked"
-                    color="blue"
-                    icon={Eye}
                 />
                 <StatCard
                     label="Patterns"
                     value={recent_patterns.length}
                     sub="recently detected"
-                    color="purple"
-                    icon={Zap}
                 />
                 <StatCard
                     label="Predictions"
                     value={prediction_stats.total_predictions || 0}
                     sub={`${prediction_stats.accuracy || 0}% accuracy`}
-                    color="green"
-                    icon={TrendingUp}
                 />
                 <StatCard
                     label="News"
                     value={recent_news.length}
                     sub="recent articles"
-                    color="amber"
-                    icon={Newspaper}
                 />
             </div>
 
-            {/* ─── Watchlist ───────────────────────────────────────── */}
-            <div className="glass-card p-5 sm:p-6">
-                <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-lg font-semibold flex items-center gap-2">
-                        <Eye size={18} className="text-blue-400" />
+            {/* ─── Watchlist Table ──────────────────────────────────── */}
+            <div className="card">
+                <div className="flex items-center justify-between px-4 py-3"
+                    style={{ borderBottom: '1px solid var(--border)' }}>
+                    <h2 className="text-xs font-semibold uppercase tracking-wider"
+                        style={{ color: 'var(--text-secondary)' }}>
                         Watchlist
                     </h2>
                     <button onClick={() => setShowAddModal(true)}
                         className="btn btn-ghost text-xs">
-                        <Plus size={14} />
-                        Add
+                        + Add
                     </button>
                 </div>
 
                 {watchlist.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="w-16 h-16 rounded-2xl bg-white/[0.03] flex items-center justify-center mx-auto mb-4">
-                            <TrendingUp size={28} className="text-slate-600" />
-                        </div>
-                        <p className="text-slate-500 text-sm mb-4">No stocks in your watchlist yet</p>
-                        <button onClick={() => setShowAddModal(true)} className="btn btn-primary text-sm">
-                            <Plus size={16} />
-                            Add Your First Stock
+                    <div className="text-center py-10 px-4">
+                        <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>No stocks in your watchlist yet</p>
+                        <button onClick={() => setShowAddModal(true)} className="btn btn-primary">
+                            + Add Your First Stock
                         </button>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="text-left text-xs text-slate-500 uppercase tracking-wider">
-                                    <th className="pb-3 pl-2">Stock</th>
-                                    <th className="pb-3 text-right">Price</th>
-                                    <th className="pb-3 text-right">Change</th>
-                                    <th className="pb-3 text-right hidden sm:table-cell">Volume</th>
-                                    <th className="pb-3 text-right">Actions</th>
+                                <tr className="text-left text-[11px] uppercase tracking-wider"
+                                    style={{ color: 'var(--text-muted)' }}>
+                                    <th className="pb-2 pt-3 pl-4 font-medium">Stock</th>
+                                    <th className="pb-2 pt-3 text-right font-medium">Price</th>
+                                    <th className="pb-2 pt-3 text-right font-medium">Change</th>
+                                    <th className="pb-2 pt-3 text-right hidden sm:table-cell font-medium">Volume</th>
+                                    <th className="pb-2 pt-3 text-right pr-4 font-medium">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="stagger-children">
+                            <tbody className="table-zebra">
                                 {watchlist.map((stock) => (
                                     <tr key={stock.symbol}
-                                        className="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors cursor-pointer group"
-                                        onClick={() => navigate(`/stock/${stock.symbol}`)}>
-                                        <td className="py-3.5 pl-2">
+                                        className="cursor-pointer group"
+                                        style={{ borderTop: '1px solid var(--border)', transition: 'background 0.1s' }}
+                                        onClick={() => navigate(`/stock/${stock.symbol}`)}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = ''}>
+                                        <td className="py-2.5 pl-4">
                                             <div>
-                                                <span className="font-semibold text-sm text-white group-hover:text-blue-400 transition-colors">
+                                                <span className="mono font-semibold text-xs"
+                                                    style={{ color: 'var(--text-white)' }}>
                                                     {stock.symbol}
                                                 </span>
-                                                <p className="text-xs text-slate-500 mt-0.5">{stock.name}</p>
+                                                <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{stock.name}</p>
                                             </div>
                                         </td>
-                                        <td className="py-3.5 text-right font-mono text-sm font-medium">
-                                            ₹{stock.price?.toLocaleString('en-IN') || '—'}
+                                        <td className="py-2.5 text-right mono text-xs font-medium"
+                                            style={{ color: 'var(--text-white)' }}>
+                                            {stock.price != null ? `₹${stock.price.toLocaleString('en-IN')}` : '—'}
                                         </td>
-                                        <td className="py-3.5 text-right">
+                                        <td className="py-2.5 text-right">
                                             <PriceChange change={stock.change} percent={stock.change_percent} />
                                         </td>
-                                        <td className="py-3.5 text-right text-xs text-slate-500 hidden sm:table-cell font-mono">
+                                        <td className="py-2.5 text-right text-[11px] hidden sm:table-cell mono"
+                                            style={{ color: 'var(--text-secondary)' }}>
                                             {stock.volume ? formatVolume(stock.volume) : '—'}
                                         </td>
-                                        <td className="py-3.5 text-right">
+                                        <td className="py-2.5 text-right pr-4">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleRemoveStock(stock.symbol); }}
-                                                className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100">
-                                                <Trash2 size={14} />
+                                                className="btn btn-ghost text-[11px] opacity-0 group-hover:opacity-100"
+                                                style={{ color: 'var(--bearish)', padding: '2px 8px' }}>
+                                                Remove
                                             </button>
                                         </td>
                                     </tr>
@@ -207,36 +197,43 @@ export default function Dashboard() {
             </div>
 
             {/* ─── Two Column: Patterns + News ─────────────────────── */}
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid lg:grid-cols-2 gap-3">
                 {/* Recent Patterns */}
-                <div className="glass-card p-5 sm:p-6">
-                    <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Zap size={18} className="text-purple-400" />
-                        Recent Patterns
-                    </h2>
+                <div className="card">
+                    <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                        <h2 className="text-xs font-semibold uppercase tracking-wider"
+                            style={{ color: 'var(--text-secondary)' }}>
+                            Recent Patterns
+                        </h2>
+                    </div>
                     {recent_patterns.length === 0 ? (
-                        <p className="text-sm text-slate-500 py-8 text-center">
+                        <p className="text-xs py-8 text-center" style={{ color: 'var(--text-muted)' }}>
                             Analyze a stock to detect patterns
                         </p>
                     ) : (
-                        <div className="space-y-3 stagger-children">
+                        <div className="p-2">
                             {recent_patterns.slice(0, 6).map((p, i) => (
                                 <div key={i}
-                                    className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors cursor-pointer"
-                                    onClick={() => navigate(`/stock/${p.symbol}`)}>
+                                    className="flex items-center justify-between px-3 py-2 rounded cursor-pointer"
+                                    style={{ transition: 'background 0.1s' }}
+                                    onClick={() => navigate(`/stock/${p.symbol}`)}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = ''}>
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-2 h-2 rounded-full ${p.pattern_type?.includes('Bullish') || p.pattern_type?.includes('Golden') || p.pattern_type?.includes('Oversold')
-                                                ? 'bg-emerald-400'
-                                                : p.pattern_type?.includes('Bearish') || p.pattern_type?.includes('Death') || p.pattern_type?.includes('Overbought')
-                                                    ? 'bg-red-400'
-                                                    : 'bg-amber-400'
-                                            }`} />
+                                        <span className="inline-block w-1.5 h-1.5 rounded-full"
+                                            style={{
+                                                background: p.pattern_type?.includes('Bullish') || p.pattern_type?.includes('Golden') || p.pattern_type?.includes('Oversold')
+                                                    ? 'var(--bullish)'
+                                                    : p.pattern_type?.includes('Bearish') || p.pattern_type?.includes('Death') || p.pattern_type?.includes('Overbought')
+                                                        ? 'var(--bearish)'
+                                                        : 'var(--neutral)'
+                                            }} />
                                         <div>
-                                            <p className="text-sm font-medium">{p.pattern_type}</p>
-                                            <p className="text-xs text-slate-500">{p.symbol}</p>
+                                            <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{p.pattern_type}</p>
+                                            <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{p.symbol}</p>
                                         </div>
                                     </div>
-                                    <span className="text-xs text-slate-600 font-mono">
+                                    <span className="mono text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                         {p.confidence}%
                                     </span>
                                 </div>
@@ -246,34 +243,39 @@ export default function Dashboard() {
                 </div>
 
                 {/* Recent News */}
-                <div className="glass-card p-5 sm:p-6">
-                    <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Newspaper size={18} className="text-amber-400" />
-                        Latest News
-                    </h2>
-                    {recent_news.length === 0 ? (
-                        <div className="text-center py-8">
-                            <p className="text-sm text-slate-500 mb-3">No news yet</p>
-                            <button onClick={handleFetchNews} className="btn btn-secondary text-xs">
-                                <RefreshCw size={14} />
-                                Fetch News Now
+                <div className="card">
+                    <div className="px-4 py-3 flex items-center justify-between"
+                        style={{ borderBottom: '1px solid var(--border)' }}>
+                        <h2 className="text-xs font-semibold uppercase tracking-wider"
+                            style={{ color: 'var(--text-secondary)' }}>
+                            Latest News
+                        </h2>
+                        {recent_news.length === 0 && (
+                            <button onClick={handleFetchNews} className="btn btn-ghost text-[11px]">
+                                Fetch Now
                             </button>
-                        </div>
+                        )}
+                    </div>
+                    {recent_news.length === 0 ? (
+                        <p className="text-xs py-8 text-center" style={{ color: 'var(--text-muted)' }}>
+                            No news yet
+                        </p>
                     ) : (
-                        <div className="space-y-3 stagger-children">
+                        <div className="p-2">
                             {recent_news.slice(0, 6).map((n, i) => (
                                 <div key={i}
-                                    className="p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors cursor-pointer"
-                                    onClick={() => navigate('/news')}>
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium leading-snug line-clamp-2">{n.title}</p>
-                                            <div className="flex items-center gap-2 mt-1.5">
-                                                <span className="text-xs text-slate-600">{n.source}</span>
-                                                <span className="text-xs text-slate-700">•</span>
-                                                <SentimentBadge sentiment={n.sentiment} />
-                                            </div>
-                                        </div>
+                                    className="px-3 py-2 rounded cursor-pointer"
+                                    style={{ transition: 'background 0.1s' }}
+                                    onClick={() => navigate('/news')}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = ''}>
+                                    <p className="text-xs font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>
+                                        {n.title}
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{n.source}</span>
+                                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>|</span>
+                                        <SentimentText sentiment={n.sentiment} />
                                     </div>
                                 </div>
                             ))}
@@ -284,15 +286,19 @@ export default function Dashboard() {
 
             {/* ─── Add Stock Modal ─────────────────────────────────── */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4 animate-in"
+                    style={{ background: 'rgba(0, 0, 0, 0.7)' }}
                     onClick={() => setShowAddModal(false)}>
-                    <div className="glass-card p-6 w-full max-w-md animate-fade-in-up"
-                        style={{ background: 'rgba(15, 23, 42, 0.97)' }}
+                    <div className="card p-5 w-full max-w-md animate-up"
+                        style={{ background: 'var(--bg-elevated)' }}
                         onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-lg font-semibold mb-4">Add Stock to Watchlist</h3>
-                        <div className="space-y-4">
+                        <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-white)' }}>
+                            Add Stock to Watchlist
+                        </h3>
+                        <div className="space-y-3">
                             <div>
-                                <label className="text-xs text-slate-500 uppercase tracking-wider mb-1.5 block">
+                                <label className="text-[11px] uppercase tracking-wider mb-1 block"
+                                    style={{ color: 'var(--text-muted)' }}>
                                     NSE Symbol
                                 </label>
                                 <input
@@ -305,7 +311,8 @@ export default function Dashboard() {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs text-slate-500 uppercase tracking-wider mb-1.5 block">
+                                <label className="text-[11px] uppercase tracking-wider mb-1 block"
+                                    style={{ color: 'var(--text-muted)' }}>
                                     Company Name (optional)
                                 </label>
                                 <input
@@ -316,15 +323,14 @@ export default function Dashboard() {
                                     className="input"
                                 />
                             </div>
-                            <div className="flex gap-3 pt-2">
+                            <div className="flex gap-2 pt-1">
                                 <button onClick={() => setShowAddModal(false)}
                                     className="btn btn-secondary flex-1">
                                     Cancel
                                 </button>
                                 <button onClick={handleAddStock}
                                     className="btn btn-primary flex-1">
-                                    <Plus size={16} />
-                                    Add Stock
+                                    + Add Stock
                                 </button>
                             </div>
                         </div>
@@ -337,53 +343,37 @@ export default function Dashboard() {
 
 // ─── Sub-components ──────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, color, icon: Icon }) {
-    const colorMap = {
-        blue: 'from-blue-500/10 to-blue-500/5 border-blue-500/20',
-        purple: 'from-purple-500/10 to-purple-500/5 border-purple-500/20',
-        green: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20',
-        amber: 'from-amber-500/10 to-amber-500/5 border-amber-500/20',
-    };
-    const iconColorMap = {
-        blue: 'text-blue-400',
-        purple: 'text-purple-400',
-        green: 'text-emerald-400',
-        amber: 'text-amber-400',
-    };
-
+function StatCard({ label, value, sub }) {
     return (
-        <div className={`rounded-2xl border bg-gradient-to-br p-4 sm:p-5 ${colorMap[color]}`}>
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">{label}</p>
-                    <p className="text-2xl sm:text-3xl font-bold mt-1.5">{value}</p>
-                    <p className="text-xs text-slate-500 mt-1">{sub}</p>
-                </div>
-                <Icon size={20} className={iconColorMap[color]} />
-            </div>
+        <div className="card px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wider font-medium"
+                style={{ color: 'var(--text-muted)' }}>{label}</p>
+            <p className="text-lg font-bold mono mt-1" style={{ color: 'var(--text-white)' }}>{value}</p>
+            <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{sub}</p>
         </div>
     );
 }
 
 function PriceChange({ change, percent }) {
-    if (change === undefined || change === null) return <span className="text-xs text-slate-600">—</span>;
+    if (change === undefined || change === null) return <span className="text-[11px] mono" style={{ color: 'var(--text-muted)' }}>—</span>;
     const isUp = change > 0;
     const isDown = change < 0;
+    const color = isUp ? 'var(--bullish)' : isDown ? 'var(--bearish)' : 'var(--text-secondary)';
     return (
-        <div className={`flex items-center gap-1 justify-end ${isUp ? 'text-emerald-400' : isDown ? 'text-red-400' : 'text-slate-500'}`}>
-            {isUp ? <ArrowUpRight size={14} /> : isDown ? <ArrowDownRight size={14} /> : <Minus size={14} />}
-            <span className="text-xs font-mono font-medium">
-                {isUp ? '+' : ''}{percent?.toFixed(2)}%
-            </span>
-        </div>
+        <span className="mono text-xs font-medium" style={{ color }}>
+            {isUp ? '+' : ''}{percent?.toFixed(2)}%
+        </span>
     );
 }
 
-function SentimentBadge({ sentiment }) {
-    const cls = sentiment === 'bullish' ? 'badge-bullish'
-        : sentiment === 'bearish' ? 'badge-bearish'
-            : 'badge-neutral';
-    return <span className={`badge text-[10px] ${cls}`}>{sentiment || 'pending'}</span>;
+function SentimentText({ sentiment }) {
+    if (!sentiment || sentiment === 'pending') {
+        return <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Pending</span>;
+    }
+    const color = sentiment === 'bullish' ? 'var(--bullish)'
+        : sentiment === 'bearish' ? 'var(--bearish)'
+            : 'var(--neutral)';
+    return <span className="text-[11px] font-medium capitalize" style={{ color }}>{sentiment}</span>;
 }
 
 function formatVolume(vol) {
@@ -395,15 +385,15 @@ function formatVolume(vol) {
 
 function LoadingSkeleton() {
     return (
-        <div className="space-y-6">
-            <div className="skeleton h-10 w-48" />
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-28 rounded-2xl" />)}
+        <div className="space-y-4 pt-4">
+            <div className="skeleton h-8 w-40" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-20 rounded-lg" />)}
             </div>
-            <div className="skeleton h-64 rounded-2xl" />
-            <div className="grid lg:grid-cols-2 gap-6">
-                <div className="skeleton h-48 rounded-2xl" />
-                <div className="skeleton h-48 rounded-2xl" />
+            <div className="skeleton h-56 rounded-lg" />
+            <div className="grid lg:grid-cols-2 gap-3">
+                <div className="skeleton h-40 rounded-lg" />
+                <div className="skeleton h-40 rounded-lg" />
             </div>
         </div>
     );
@@ -411,14 +401,10 @@ function LoadingSkeleton() {
 
 function ErrorState({ message, onRetry }) {
     return (
-        <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
-            <div className="w-20 h-20 rounded-3xl bg-red-500/10 flex items-center justify-center mb-6">
-                <AlertTriangle size={32} className="text-red-400" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">Connection Error</h2>
-            <p className="text-sm text-slate-500 text-center max-w-md mb-6">{message}</p>
+        <div className="flex flex-col items-center justify-center py-16 animate-in">
+            <h2 className="text-base font-semibold mb-2" style={{ color: 'var(--text-white)' }}>Connection Error</h2>
+            <p className="text-xs text-center max-w-md mb-4" style={{ color: 'var(--text-secondary)' }}>{message}</p>
             <button onClick={onRetry} className="btn btn-primary">
-                <RefreshCw size={16} />
                 Retry
             </button>
         </div>
