@@ -11,7 +11,12 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from the backend directory (works in both local and Vercel)
+_env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+if os.path.exists(_env_path):
+    load_dotenv(_env_path)
+else:
+    load_dotenv()  # fallback to default search
 
 # ─── Configuration ────────────────────────────────────────────────────────
 

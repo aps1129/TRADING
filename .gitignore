@@ -1,9 +1,27 @@
+# Python
 venv/
-node_modules/
-dist/
 __pycache__/
 *.pyc
+*.pyo
+
+# Node
+node_modules/
+dist/
+
+# Environment
 .env
-.DS_Store
+.env.local
+
+# Database
 trading.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
 .vercel
+
+# IDE
+.vscode/
+.idea/

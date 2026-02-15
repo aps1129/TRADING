@@ -19,6 +19,8 @@ import os
 # Ensure the backend directory is in the python path for relative imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from contextlib import asynccontextmanager
+
 from database import init_db, add_to_watchlist, remove_from_watchlist, get_watchlist
 from database import save_article, save_analysis, get_news
 from database import save_pattern, get_patterns
@@ -27,12 +29,23 @@ from technical import fetch_stock_data, calculate_indicators, detect_patterns, g
 from news_scraper import fetch_all_feeds, get_news_for_stock, scrape_article_content
 from ai_analysis import explain_pattern, analyze_news_sentiment, generate_prediction, get_api_status
 
+# Initialize database at module level (needed for serverless environments like Vercel)
+init_db()
+
+@asynccontextmanager
+async def lifespan(app):
+    # Startup
+    init_db()
+    yield
+    # Shutdown (nothing to do)
+
 # ─── App Setup ─────────────────────────────────────────────────────────────
 
 app = FastAPI(
     title="Stock Analysis AI",
     description="AI-Powered Stock Analysis & News Tool for Indian Markets",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -42,11 +55,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Initialize database on startup
-@app.on_event("startup")
-def startup():
-    init_db()
 
 
 # ─── Models ────────────────────────────────────────────────────────────────
