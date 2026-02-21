@@ -1,56 +1,55 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════
-   STOCKAI PRO — Bloomberg Terminal Design System
-   Professional, data-dense, zero-noise trading interface
+   STOCKAI PRO — Premium Trading Interface
+   Inspired by Bloomberg Terminal & TradingView
    ═══════════════════════════════════════════════════════════════ */
 
-/* ─── Design Tokens ──────────────────────────────────────────── */
 :root {
-  /* Background */
-  --bg-base: #0B0E14;
-  --bg-card: #161A23;
-  --bg-card-hover: #1C2030;
-  --bg-surface: #1E222D;
-  --bg-elevated: #252A37;
+  /* Rich, deep dark theme */
+  --bg-base: #06090F;
+  --bg-card: #0D111A;
+  --bg-card-hover: #151A26;
+  --bg-surface: #131824;
+  --bg-elevated: #1C2333;
 
-  /* Semantic Colors */
-  --bullish: #26A69A;
-  --bullish-bg: rgba(38, 166, 154, 0.12);
-  --bullish-border: rgba(38, 166, 154, 0.25);
-  --bearish: #EF5350;
-  --bearish-bg: rgba(239, 83, 80, 0.12);
-  --bearish-border: rgba(239, 83, 80, 0.25);
-  --neutral: #F59E0B;
-  --neutral-bg: rgba(245, 158, 11, 0.12);
-  --neutral-border: rgba(245, 158, 11, 0.25);
+  /* Premium Semantic Colors */
+  --bullish: #00E676;
+  --bullish-bg: rgba(0, 230, 118, 0.1);
+  --bullish-border: rgba(0, 230, 118, 0.3);
+  --bearish: #FF1744;
+  --bearish-bg: rgba(255, 23, 68, 0.1);
+  --bearish-border: rgba(255, 23, 68, 0.3);
+  --neutral: #FFD600;
+  --neutral-bg: rgba(255, 214, 0, 0.1);
+  --neutral-border: rgba(255, 214, 0, 0.3);
 
-  /* AI Purple */
-  --ai-purple: #9C27B0;
-  --ai-purple-bg: rgba(156, 39, 176, 0.12);
-  --ai-purple-border: rgba(156, 39, 176, 0.25);
+  /* AI/Magic Purple */
+  --ai-purple: #D500F9;
+  --ai-purple-bg: rgba(213, 0, 249, 0.1);
+  --ai-purple-border: rgba(213, 0, 249, 0.3);
 
   /* Accent Blue */
   --accent: #2962FF;
-  --accent-bg: rgba(41, 98, 255, 0.12);
-  --accent-border: rgba(41, 98, 255, 0.25);
+  --accent-glow: rgba(41, 98, 255, 0.4);
+  --accent-bg: rgba(41, 98, 255, 0.1);
 
   /* Text Hierarchy */
-  --text-primary: #D1D4DC;
-  --text-secondary: #787B86;
-  --text-muted: #4A4E5A;
   --text-white: #FFFFFF;
+  --text-primary: #ECEFF4;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
 
-  /* Borders */
-  --border: rgba(120, 123, 134, 0.15);
-  --border-hover: rgba(120, 123, 134, 0.3);
+  /* Borders & Glass */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.15);
+  --glass-bg: rgba(13, 17, 26, 0.7);
 
   /* Typography */
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'Roboto Mono', 'Consolas', monospace;
+  --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
-/* ─── Base ───────────────────────────────────────────────────── */
 * {
   margin: 0;
   padding: 0;
@@ -58,156 +57,115 @@
 }
 
 html {
-  scroll-behavior: smooth;
   font-size: 14px;
 }
 
 body {
   font-family: var(--font-body);
   background: var(--bg-base);
+  background-image: radial-gradient(circle at top right, rgba(41, 98, 255, 0.05), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(213, 0, 249, 0.03), transparent 40%);
   color: var(--text-primary);
   min-height: 100vh;
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── Scrollbar (minimal) ────────────────────────────────────── */
+/* ─── Scrollbar ────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--bg-base);
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--text-muted);
-  border-radius: 3px;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
 }
 
-/* ─── Card Component ─────────────────────────────────────────── */
+/* ─── Global Utilities ─────────────────────────────────────────── */
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+/* ─── Cards & Surfaces ─────────────────────────────────────────── */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  transition: border-color 0.15s ease;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
 }
 
 .card:hover {
   border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
 }
 
-.card-elevated {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+.glass-nav {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
 }
 
-/* ─── Mono Numbers ───────────────────────────────────────────── */
-.mono {
-  font-family: var(--font-mono);
-}
-
-/* ─── Animations (minimal) ───────────────────────────────────── */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-in {
-  animation: fadeIn 0.2s ease forwards;
-}
-
-.animate-up {
-  animation: fadeInUp 0.3s ease forwards;
-}
-
-/* ─── Skeleton ───────────────────────────────────────────────── */
-.skeleton {
-  background: linear-gradient(90deg,
-      var(--bg-card) 25%,
-      var(--bg-surface) 50%,
-      var(--bg-card) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-}
-
-/* ─── Badge ──────────────────────────────────────────────────── */
+/* ─── Badges ──────────────────────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: var(--font-body);
-  line-height: 1.4;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
 }
 
 .badge-bullish {
   background: var(--bullish-bg);
   color: var(--bullish);
+  border: 1px solid var(--bullish-border);
 }
 
 .badge-bearish {
   background: var(--bearish-bg);
   color: var(--bearish);
+  border: 1px solid var(--bearish-border);
 }
 
 .badge-neutral {
   background: var(--neutral-bg);
   color: var(--neutral);
+  border: 1px solid var(--neutral-border);
 }
 
 .badge-ai {
   background: var(--ai-purple-bg);
   color: var(--ai-purple);
-}
-
-.badge-pending {
-  background: rgba(74, 78, 90, 0.3);
-  color: var(--text-secondary);
+  border: 1px solid var(--ai-purple-border);
+  box-shadow: 0 0 10px rgba(213, 0, 249, 0.2);
 }
 
 /* ─── Buttons ────────────────────────────────────────────────── */
@@ -215,32 +173,36 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 12px;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: var(--font-body);
-  white-space: nowrap;
-  line-height: 1.4;
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn-primary {
   background: var(--accent);
   color: #fff;
-  border-color: var(--accent);
+  box-shadow: 0 0 15px var(--accent-glow);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1E53E5;
+  background: #448AFF;
+  box-shadow: 0 0 25px var(--accent-glow);
 }
 
 .btn-secondary {
@@ -257,114 +219,99 @@ body {
 .btn-ghost {
   background: transparent;
   color: var(--text-secondary);
-  padding: 6px 10px;
 }
 
-.btn-ghost:hover {
+.btn-ghost:hover:not(:disabled) {
   background: var(--bg-surface);
-  color: var(--text-primary);
+  color: var(--text-white);
 }
 
-.btn-danger {
-  background: var(--bearish-bg);
-  color: var(--bearish);
-  border-color: var(--bearish-border);
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: rgba(239, 83, 80, 0.2);
-}
-
-.btn-bullish {
-  background: var(--bullish-bg);
-  color: var(--bullish);
-  border-color: var(--bullish-border);
-}
-
-.btn-ai {
-  background: var(--ai-purple-bg);
-  color: var(--ai-purple);
-  border-color: var(--ai-purple-border);
-}
-
-.btn-ai:hover:not(:disabled) {
-  background: rgba(156, 39, 176, 0.2);
-}
-
-/* ─── Input ──────────────────────────────────────────────────── */
+/* ─── Inputs ──────────────────────────────────────────────────── */
 .input {
-  background: var(--bg-surface);
+  background: var(--bg-base);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 12px;
+  border-radius: 8px;
+  padding: 10px 14px;
   color: var(--text-primary);
-  font-family: var(--font-body);
   font-size: 13px;
-  transition: border-color 0.15s ease;
+  transition: all 0.2s ease;
   width: 100%;
 }
 
 .input:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
 }
 
 .input::placeholder {
   color: var(--text-muted);
 }
 
-textarea.input {
-  resize: vertical;
-  min-height: 100px;
-}
-
-/* ─── Chart Tooltip ──────────────────────────────────────────── */
-.chart-tooltip {
-  background: var(--bg-elevated) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 6px !important;
-  padding: 8px 12px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-}
-
 /* ─── Table ──────────────────────────────────────────────────── */
+.table-zebra tr {
+  transition: background 0.2s ease;
+}
+
 .table-zebra tr:nth-child(even) {
-  background: rgba(30, 34, 45, 0.5);
+  background: rgba(255, 255, 255, 0.02);
 }
 
-/* ─── Divider ────────────────────────────────────────────────── */
-.divider {
-  border: none;
-  border-top: 1px solid var(--border);
+.table-zebra tr:hover {
+  background: var(--bg-surface) !important;
 }
 
-/* ─── AI Section Border ──────────────────────────────────────── */
-.ai-border {
-  border-left: 4px solid var(--ai-purple);
-  padding-left: 16px;
+th {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
 }
 
-/* ─── Confidence Bar ─────────────────────────────────────────── */
-.confidence-bar {
-  height: 4px;
-  background: var(--bg-surface);
-  border-radius: 2px;
-  overflow: hidden;
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.confidence-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.3s ease;
+.animate-up {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ─── Price Colors ───────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-surface) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ─── Text Colors ──────────────────────────────────────────── */
 .text-bullish {
   color: var(--bullish);
+  text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
 }
 
 .text-bearish {
   color: var(--bearish);
+  text-shadow: 0 0 10px rgba(255, 23, 68, 0.3);
 }
 
 .text-neutral-color {
@@ -373,23 +320,5 @@ textarea.input {
 
 .text-ai {
   color: var(--ai-purple);
-}
-
-.bg-bullish {
-  background: var(--bullish-bg);
-}
-
-.bg-bearish {
-  background: var(--bearish-bg);
-}
-
-/* ─── Responsive ─────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  html {
-    font-size: 13px;
-  }
-
-  .card {
-    border-radius: 6px;
-  }
+  text-shadow: 0 0 10px rgba(213, 0, 249, 0.3);
 }
