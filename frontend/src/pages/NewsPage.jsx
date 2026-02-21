@@ -95,74 +95,67 @@ export default function NewsPage() {
     };
 
     return (
-        <div className="space-y-4 animate-up">
-            {/* ─── Header ──────────────────────────────────────────── */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
-                <div>
-                    <h1 className="text-base font-semibold" style={{ color: 'var(--text-white)' }}>
-                        Market News
+        <div className="space-y-6 animate-up max-w-[1200px] mx-auto">
+
+            {/* ─── Header Header Widget ──────────────────────────────────────────── */}
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 py-6 border-b border-[var(--border)] bg-gradient-to-r from-[var(--bg-elevated)] to-[var(--bg-base)] rounded-2xl px-6 border shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--ai-purple)] rounded-full blur-[100px] opacity-10 pointer-events-none" />
+
+                <div className="relative z-10">
+                    <h1 className="text-3xl font-black font-mono text-white tracking-tighter drop-shadow-md flex items-center gap-3">
+                        <svg className="w-8 h-8 text-[var(--ai-purple)] drop-shadow-[0_0_10px_var(--ai-purple-bg)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                        Global Market Intel
                     </h1>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Aggregated from {SOURCES.length - 1} sources with AI sentiment analysis
+                    <p className="text-[12px] mt-2 text-[var(--text-secondary)] font-mono uppercase tracking-widest font-bold">
+                        Deep-scanning {SOURCES.length - 1} data sources via Gemini 2.0
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button onClick={() => setShowManualModal(true)}
-                        className="btn btn-secondary">
-                        Analyze Article
+
+                <div className="flex flex-row lg:flex-col gap-3 self-stretch lg:self-center justify-center relative z-10 w-full sm:w-auto">
+                    <button onClick={() => setShowManualModal(true)} className="btn btn-secondary font-mono text-[11px] tracking-widest uppercase flex-1 sm:flex-none">
+                        + Custom Intel Scan
                     </button>
-                    <button onClick={handleFetchNews}
-                        className="btn btn-primary"
-                        disabled={refreshing}>
-                        {refreshing ? 'Fetching...' : 'Fetch Latest'}
+                    <button onClick={handleFetchNews} disabled={refreshing} className="btn btn-primary font-mono text-[11px] tracking-widest shadow-[0_0_15px_var(--accent-glow)] flex-1 sm:flex-none">
+                        {refreshing ? 'EXECUTING...' : 'FORCE SYNC DB'}
                     </button>
                 </div>
             </div>
 
-            {/* ─── Filters ─────────────────────────────────────────── */}
-            <div className="card p-4">
-                <div className="flex flex-col sm:flex-row gap-4">
+            {/* ─── Filter Bar ─────────────────────────────────────────── */}
+            <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-5 shadow-xl">
+                <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-1">
-                        <p className="text-[10px] uppercase tracking-wider mb-1.5 font-medium"
-                            style={{ color: 'var(--text-muted)' }}>Source</p>
-                        <div className="flex flex-wrap gap-1">
+                        <p className="text-[10px] uppercase font-mono tracking-widest font-bold mb-3 text-[var(--text-muted)] flex items-center gap-2">
+                            <svg className="w-3 h-3 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                            Data Provider
+                        </p>
+                        <div className="flex flex-wrap gap-2">
                             {SOURCES.map(s => (
                                 <button key={s} onClick={() => setSource(s)}
-                                    className="px-2.5 py-1 rounded text-[11px] font-medium"
-                                    style={{
-                                        background: source === s ? 'var(--accent-bg)' : 'var(--bg-surface)',
-                                        color: source === s ? 'var(--accent)' : 'var(--text-secondary)',
-                                        border: source === s ? '1px solid var(--accent-border)' : '1px solid transparent',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.1s',
-                                    }}>
+                                    className={`px-3 py-1.5 rounded-md text-[11px] font-bold font-mono transition-all border shadow-sm ${source === s ? 'bg-[var(--accent)] text-white border-[var(--accent)]' : 'bg-[var(--bg-base)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--text-muted)]'}`}>
                                     {s}
                                 </button>
                             ))}
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] uppercase tracking-wider mb-1.5 font-medium"
-                            style={{ color: 'var(--text-muted)' }}>Sentiment</p>
-                        <div className="flex gap-1">
+                        <p className="text-[10px] uppercase font-mono tracking-widest font-bold mb-3 text-[var(--text-muted)] flex items-center gap-2">
+                            <svg className="w-3 h-3 text-[var(--ai-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            Detected Sentiment Mode
+                        </p>
+                        <div className="flex flex-wrap gap-2">
                             {SENTIMENTS.map(s => {
                                 const activeColors = {
-                                    all: { bg: 'var(--accent-bg)', color: 'var(--accent)', border: 'var(--accent-border)' },
-                                    bullish: { bg: 'var(--bullish-bg)', color: 'var(--bullish)', border: 'var(--bullish-border)' },
-                                    bearish: { bg: 'var(--bearish-bg)', color: 'var(--bearish)', border: 'var(--bearish-border)' },
-                                    neutral: { bg: 'var(--neutral-bg)', color: 'var(--neutral)', border: 'var(--neutral-border)' },
+                                    all: 'bg-[var(--accent)] text-white border-[var(--accent)]',
+                                    bullish: 'bg-[var(--bullish)] text-[var(--bg-base)] border-[var(--bullish)]',
+                                    bearish: 'bg-[var(--bearish)] text-[var(--bg-base)] border-[var(--bearish)]',
+                                    neutral: 'bg-[var(--neutral)] text-[var(--bg-base)] border-[var(--neutral)]',
                                 };
-                                const active = activeColors[s];
+                                const inactiveColor = 'bg-[var(--bg-base)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--text-muted)]';
+
                                 return (
                                     <button key={s} onClick={() => setSentiment(s)}
-                                        className="px-2.5 py-1 rounded text-[11px] font-medium capitalize"
-                                        style={{
-                                            background: sentiment === s ? active.bg : 'var(--bg-surface)',
-                                            color: sentiment === s ? active.color : 'var(--text-secondary)',
-                                            border: sentiment === s ? `1px solid ${active.border}` : '1px solid transparent',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.1s',
-                                        }}>
+                                        className={`px-4 py-1.5 rounded-md text-[11px] font-bold font-mono uppercase tracking-widest transition-all border shadow-sm ${sentiment === s ? activeColors[s] : inactiveColor}`}>
                                         {s}
                                     </button>
                                 );
@@ -172,94 +165,220 @@ export default function NewsPage() {
                 </div>
             </div>
 
-            {/* ─── Manual Analysis Modal ───────────────────────────── */}
+            {/* ─── Article Feed ──────────────────────────── */}
+            {loading ? (
+                <div className="space-y-4">
+                    {[1, 2, 3, 4, 5].map(i => (
+                        <div key={i} className="skeleton h-24 rounded-xl" />
+                    ))}
+                </div>
+            ) : articles.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-16 bg-[var(--bg-card)] rounded-xl border border-[var(--border)] shadow-xl">
+                    <svg className="w-16 h-16 text-[var(--border)] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                    <p className="text-[14px] font-mono text-[var(--text-secondary)] uppercase tracking-widest font-bold mb-4">No Intel Records Found</p>
+                    <button onClick={handleFetchNews} className="btn btn-primary px-8 font-mono shadow-[0_0_15px_var(--accent-glow)]">Execute Fetch</button>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {articles.map((article) => (
+                        <div key={article.id} className="card bg-[var(--bg-card)] border border-[var(--border)] shadow-lg overflow-hidden group">
+
+                            {/* Summary View (Always visible) */}
+                            <button
+                                onClick={() => toggleArticle(article.id)}
+                                className="w-full text-left p-5 cursor-pointer bg-transparent border-none transition-colors group-hover:bg-[var(--bg-surface)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                        <SentimentText sentiment={article.sentiment} confidence={article.analysis_confidence} />
+                                        <span className="text-[10px] text-[var(--text-muted)]">|</span>
+                                        <span className="text-[10px] uppercase font-bold tracking-widest font-mono text-[var(--text-secondary)]">
+                                            {article.source}
+                                        </span>
+                                        <span className="text-[10px] text-[var(--text-muted)]">|</span>
+                                        <span className="text-[10px] font-mono font-bold text-[var(--text-muted)]">
+                                            {formatDate(article.published_date)}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-[16px] font-bold text-white group-hover:text-[var(--accent)] transition-colors leading-snug">
+                                        {article.title}
+                                    </h3>
+
+                                    {article.symbols_mentioned?.length > 0 && (
+                                        <div className="flex gap-2 mt-3 flex-wrap">
+                                            {article.symbols_mentioned.map(s => (
+                                                <span key={s} className="px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-widest border bg-[var(--bg-base)] text-[var(--text-secondary)] border-[var(--border)] shadow-sm">
+                                                    {s}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="w-8 h-8 rounded-full bg-[var(--bg-base)] border border-[var(--border)] flex items-center justify-center shrink-0 self-end sm:self-center transition-colors group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]">
+                                    <svg className={`w-4 h-4 transition-transform ${expandedArticle === article.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </button>
+
+                            {/* Deep Dive View */}
+                            {expandedArticle === article.id && (
+                                <div className="px-6 pb-6 pt-2 animate-in bg-[var(--bg-elevated)] border-t border-[var(--border)]">
+                                    {article.content && (
+                                        <p className="text-[13px] leading-relaxed text-[var(--text-secondary)] mb-6 py-4 border-b border-[var(--border)]">
+                                            {article.content.slice(0, 500)}
+                                            {article.content.length > 500 && '...'}
+                                        </p>
+                                    )}
+
+                                    {/* AI Context Engine */}
+                                    <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-xl p-5 mb-5 shadow-inner relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-[var(--ai-purple)]" />
+                                        <p className="text-[10px] uppercase font-mono tracking-widest font-bold mb-3 flex items-center gap-2 text-[var(--ai-purple)]">
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 9V5h2v4h4v2h-4v4H9v-4H5V9h4z" clipRule="evenodd" /></svg>
+                                            Gemini Context Synthesis
+                                        </p>
+
+                                        {article.key_points?.length > 0 ? (
+                                            <ul className="space-y-2">
+                                                {article.key_points.map((point, i) => (
+                                                    <li key={i} className="text-[13px] flex items-start gap-3 text-[var(--text-primary)]">
+                                                        <span className="text-[var(--ai-purple)] mt-1"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg></span>
+                                                        <span className="leading-relaxed">{point}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p className="text-[12px] font-mono text-[var(--text-muted)] italic">No synthesis available.</p>
+                                        )}
+                                    </div>
+
+                                    {/* Action Footers */}
+                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                        {article.sentiment === 'pending' ? (
+                                            <button
+                                                onClick={() => handleAnalyze(article.id)}
+                                                className="btn btn-ai px-6 py-2 shadow-[0_0_15px_var(--ai-purple-bg)]"
+                                                disabled={analyzingId === article.id}>
+                                                {analyzingId === article.id ? 'EXECUTING NEURAL SCAN...' : 'TRIGGER AI ANALYSIS'}
+                                            </button>
+                                        ) : <div />}
+
+                                        {article.url && (
+                                            <a href={article.url} target="_blank" rel="noopener noreferrer"
+                                                className="btn btn-secondary border border-[var(--border)] font-mono text-[11px] uppercase tracking-widest hover:text-white group w-full sm:w-auto">
+                                                Access Source Intel
+                                                <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* ─── Manual Analysis Modal (Glassmorphism) ───────────────────────────── */}
             {showManualModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 p-4 animate-in"
-                    style={{ background: 'rgba(0, 0, 0, 0.7)' }}
+                <div className="fixed inset-0 flex items-center justify-center z-[100] p-4 bg-black/60 backdrop-blur-md animate-in"
                     onClick={() => setShowManualModal(false)}>
-                    <div className="card w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-up"
-                        style={{ background: 'var(--bg-elevated)' }}
+                    <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-up relative overflow-hidden flex flex-col"
                         onClick={e => e.stopPropagation()}>
-                        <div className="px-5 py-3 flex justify-between items-center"
-                            style={{ borderBottom: '1px solid var(--border)' }}>
-                            <h3 className="text-sm font-semibold" style={{ color: 'var(--text-white)' }}>
-                                Custom Article Analysis
+
+                        {/* Decorative Gradient Blob */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--ai-purple)] rounded-full blur-[100px] opacity-10 pointer-events-none" />
+
+                        <div className="flex justify-between items-center p-6 border-b border-[var(--border)] bg-[#0A0E17] relative z-10 shrink-0">
+                            <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                                <svg className="w-6 h-6 text-[var(--ai-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                Custom Intel Upload
                             </h3>
-                            <button onClick={() => setShowManualModal(false)}
-                                className="btn btn-ghost text-[11px]">Close</button>
+                            <button onClick={() => setShowManualModal(false)} className="text-[var(--text-muted)] hover:text-white transition-colors p-1.5 rounded-md hover:bg-[var(--bg-surface)]">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
                         </div>
 
-                        <div className="p-5 space-y-4">
+                        <div className="p-6 overflow-y-auto space-y-6 relative z-10 flex-1">
                             {!manualAnalysis ? (
-                                <>
-                                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                        Paste any news article to get instant AI sentiment analysis.
+                                <div className="space-y-5">
+                                    <p className="text-[13px] text-[var(--text-secondary)]">
+                                        Inject raw text data into the neural network for instant context and sentiment extraction.
                                     </p>
                                     <div>
-                                        <label className="text-[11px] uppercase tracking-wider mb-1 block"
-                                            style={{ color: 'var(--text-muted)' }}>Headline</label>
+                                        <label className="text-[10px] uppercase font-mono font-bold tracking-widest text-[var(--text-muted)] mb-2 block">
+                                            Intel Vector (Headline)
+                                        </label>
                                         <input
                                             value={manualTitle}
                                             onChange={(e) => setManualTitle(e.target.value)}
                                             placeholder="Paste article headline..."
-                                            className="input mb-3"
+                                            className="input py-3 text-[14px] bg-[var(--bg-base)] border-2 border-[var(--border)] focus:border-[var(--ai-purple)]"
                                         />
-                                        <label className="text-[11px] uppercase tracking-wider mb-1 block"
-                                            style={{ color: 'var(--text-muted)' }}>Content</label>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] uppercase font-mono font-bold tracking-widest text-[var(--text-muted)] mb-2 block">
+                                            Raw Data Payload (Content)
+                                        </label>
                                         <textarea
                                             value={manualContent}
                                             onChange={(e) => setManualContent(e.target.value)}
                                             placeholder="Paste full article content here..."
-                                            className="input"
-                                            style={{ minHeight: '120px' }}
+                                            className="input py-3 text-[14px] bg-[var(--bg-base)] border-2 border-[var(--border)] focus:border-[var(--ai-purple)] resize-y"
+                                            style={{ minHeight: '200px' }}
                                         />
                                     </div>
-                                    <div className="flex justify-end">
+                                    <div className="pt-4 flex justify-end">
                                         <button
                                             onClick={handleManualAnalyze}
                                             disabled={analyzingManual || !manualTitle || !manualContent}
-                                            className="btn btn-ai">
-                                            {analyzingManual ? 'Analyzing...' : 'Analyze Text'}
+                                            className="btn btn-ai py-3 px-8 shadow-[0_0_20px_var(--ai-purple-bg)] w-full sm:w-auto text-[13px]">
+                                            {analyzingManual ? 'PROCESSING DATA...' : 'EXECUTE SCAN'}
                                         </button>
                                     </div>
-                                </>
+                                </div>
                             ) : (
-                                <div className="space-y-4 animate-in">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <SentimentBadge sentiment={manualAnalysis.sentiment} />
-                                            {manualAnalysis.impact && (
-                                                <span className="badge badge-neutral text-[11px]">
-                                                    {manualAnalysis.impact} impact
+                                <div className="space-y-6 animate-in">
+                                    <div className="bg-[var(--bg-elevated)] p-5 rounded-xl border border-[var(--border)] flex items-center justify-between shadow-inner">
+                                        <div>
+                                            <p className="text-[10px] uppercase font-mono tracking-widest font-bold text-[var(--text-muted)] mb-2">Resulting Sentiment</p>
+                                            <div className="flex items-center gap-3">
+                                                <span className={`px-4 py-1.5 rounded uppercase font-black font-mono tracking-widest text-[14px] ${manualAnalysis.sentiment === 'bullish' ? 'bg-[var(--bullish-bg)] text-[var(--bullish)] border border-[var(--bullish-border)]' : manualAnalysis.sentiment === 'bearish' ? 'bg-[var(--bearish-bg)] text-[var(--bearish)] border border-[var(--bearish-border)]' : 'bg-[var(--neutral-bg)] text-[var(--neutral)] border border-[var(--neutral-border)]'}`}>
+                                                    {manualAnalysis.sentiment}
                                                 </span>
-                                            )}
+                                                {manualAnalysis.impact && (
+                                                    <span className="text-[10px] uppercase font-bold font-mono px-2 py-1 bg-[var(--bg-base)] text-[var(--text-secondary)] rounded border border-[var(--border)]">
+                                                        {manualAnalysis.impact} Impact
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                        <span className="mono text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                            Confidence: {manualAnalysis.confidence}%
-                                        </span>
+                                        <div className="text-right">
+                                            <p className="text-[10px] uppercase font-mono tracking-widest font-bold text-[var(--text-muted)] mb-1">Confidence</p>
+                                            <span className="mono text-2xl font-black text-white">{manualAnalysis.confidence}%</span>
+                                        </div>
                                     </div>
 
-                                    <div className="ai-border">
-                                        <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--ai-purple)' }}>
-                                            Key Takeaways
+                                    <div className="border border-[var(--ai-purple)] bg-[var(--ai-purple-bg)] rounded-xl p-5 relative overflow-hidden">
+                                        <div className="absolute left-0 top-0 w-1 h-full bg-[var(--ai-purple)]" />
+                                        <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--ai-purple)' }}>
+                                            Synthesized Actionable Insights
                                         </p>
-                                        <ul className="space-y-1">
+                                        <ul className="space-y-3">
                                             {manualAnalysis.key_points?.map((pt, i) => (
-                                                <li key={i} className="text-xs flex items-start gap-2" style={{ color: 'var(--text-secondary)' }}>
-                                                    <span style={{ color: 'var(--text-muted)' }}>*</span>
-                                                    {pt}
+                                                <li key={i} className="text-[13px] flex items-start gap-3 text-white">
+                                                    <span style={{ color: 'var(--ai-purple)' }} className="mt-1"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg></span>
+                                                    <span className="leading-relaxed">{pt}</span>
                                                 </li>
                                             ))}
                                         </ul>
                                     </div>
 
                                     {manualAnalysis.affected_stocks?.length > 0 && (
-                                        <div>
-                                            <p className="text-[11px] uppercase tracking-wider mb-1.5"
-                                                style={{ color: 'var(--text-muted)' }}>Affected Stocks</p>
-                                            <div className="flex flex-wrap gap-1.5">
+                                        <div className="bg-[var(--bg-base)] p-4 rounded-xl border border-[var(--border)] text-center">
+                                            <p className="text-[10px] uppercase font-mono tracking-widest font-bold mb-3 text-[var(--text-muted)]">Detected Asset Correlations</p>
+                                            <div className="flex flex-wrap gap-2 justify-center">
                                                 {manualAnalysis.affected_stocks.map(s => (
-                                                    <span key={s} className="mono text-[11px] px-2 py-0.5 rounded"
+                                                    <span key={s} className="mono text-[12px] font-bold px-3 py-1.5 rounded shadow-sm"
                                                         style={{ background: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}>
                                                         {s}
                                                     </span>
@@ -268,11 +387,11 @@ export default function NewsPage() {
                                         </div>
                                     )}
 
-                                    <div className="flex justify-end pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                                    <div className="flex justify-end pt-5 border-t border-[var(--border)]">
                                         <button
                                             onClick={() => { setManualAnalysis(null); setManualTitle(''); setManualContent(''); }}
-                                            className="btn btn-secondary">
-                                            Analyze Another
+                                            className="btn btn-secondary border border-[var(--border)] py-3 px-6 shadow-sm">
+                                            RESET FOR NEW SCAN
                                         </button>
                                     </div>
                                 </div>
@@ -282,150 +401,26 @@ export default function NewsPage() {
                 </div>
             )}
 
-            {/* ─── Articles (List View) ──────────────────────────── */}
-            {loading ? (
-                <div className="space-y-2">
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className="skeleton h-16 rounded-lg" />
-                    ))}
-                </div>
-            ) : articles.length === 0 ? (
-                <div className="card text-center py-12">
-                    <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>No news articles found</p>
-                    <button onClick={handleFetchNews} className="btn btn-primary">
-                        Fetch News Now
-                    </button>
-                </div>
-            ) : (
-                <div className="card">
-                    {articles.map((article, idx) => (
-                        <div key={article.id}
-                            style={idx > 0 ? { borderTop: '1px solid var(--border)' } : {}}>
-                            {/* Article Row */}
-                            <button
-                                onClick={() => toggleArticle(article.id)}
-                                className="w-full text-left px-4 py-3 cursor-pointer"
-                                style={{ background: 'transparent', border: 'none', transition: 'background 0.1s' }}
-                                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-xs font-medium leading-snug mb-1"
-                                            style={{ color: 'var(--text-primary)' }}>
-                                            {article.title}
-                                        </h3>
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
-                                                {article.source}
-                                            </span>
-                                            <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>|</span>
-                                            <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                                                {formatDate(article.published_date)}
-                                            </span>
-                                            <SentimentText sentiment={article.sentiment}
-                                                confidence={article.analysis_confidence} />
-                                            {article.symbols_mentioned?.length > 0 && (
-                                                <div className="flex gap-1">
-                                                    {article.symbols_mentioned.slice(0, 3).map(s => (
-                                                        <span key={s} className="mono text-[10px] px-1 py-0.5 rounded"
-                                                            style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>
-                                                            {s}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <span className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
-                                        {expandedArticle === article.id ? '-' : '+'}
-                                    </span>
-                                </div>
-                            </button>
-
-                            {/* Expanded Content */}
-                            {expandedArticle === article.id && (
-                                <div className="px-4 pb-4 animate-in" style={{ borderTop: '1px solid var(--border)' }}>
-                                    <div className="pt-3">
-                                        {/* Content */}
-                                        {article.content && (
-                                            <p className="text-xs leading-relaxed mb-3" style={{ color: 'var(--text-secondary)' }}>
-                                                {article.content.slice(0, 500)}
-                                                {article.content.length > 500 && '...'}
-                                            </p>
-                                        )}
-
-                                        {/* AI Analysis */}
-                                        {article.key_points?.length > 0 && (
-                                            <div className="ai-border mb-3">
-                                                <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--ai-purple)' }}>
-                                                    AI Analysis
-                                                </p>
-                                                <ul className="space-y-1">
-                                                    {article.key_points.map((point, i) => (
-                                                        <li key={i} className="text-xs flex items-start gap-2" style={{ color: 'var(--text-secondary)' }}>
-                                                            <span style={{ color: 'var(--text-muted)' }}>*</span>
-                                                            {point}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                                {article.analysis_confidence > 0 && (
-                                                    <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)' }}>
-                                                        Confidence: {article.analysis_confidence}%
-                                                    </p>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-2">
-                                            {article.sentiment === 'pending' && (
-                                                <button
-                                                    onClick={() => handleAnalyze(article.id)}
-                                                    className="btn btn-ai"
-                                                    disabled={analyzingId === article.id}>
-                                                    {analyzingId === article.id ? 'Analyzing...' : 'Analyze with AI'}
-                                                </button>
-                                            )}
-                                            {article.url && (
-                                                <a href={article.url} target="_blank" rel="noopener noreferrer"
-                                                    className="btn btn-secondary">
-                                                    Read Full Article
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
         </div>
     );
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────
 
-function SentimentBadge({ sentiment }) {
-    if (!sentiment || sentiment === 'pending') {
-        return <span className="badge badge-pending text-[11px]">Pending</span>;
-    }
-    const cls = sentiment === 'bullish' ? 'badge-bullish'
-        : sentiment === 'bearish' ? 'badge-bearish'
-            : 'badge-neutral';
-    return <span className={`badge text-[11px] capitalize ${cls}`}>{sentiment}</span>;
-}
-
 function SentimentText({ sentiment, confidence }) {
     if (!sentiment || sentiment === 'pending') {
-        return <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Pending</span>;
+        return <span className="badge badge-pending border-[var(--border)] bg-[var(--bg-card)]">AWAITING AI SCAN</span>;
     }
-    const color = sentiment === 'bullish' ? 'var(--bullish)'
-        : sentiment === 'bearish' ? 'var(--bearish)'
-            : 'var(--neutral)';
+    const colors = {
+        bullish: 'text-[var(--bullish)] bg-[var(--bullish-bg)] border-[var(--bullish-border)]',
+        bearish: 'text-[var(--bearish)] bg-[var(--bearish-bg)] border-[var(--bearish-border)]',
+        neutral: 'text-[var(--neutral)] bg-[var(--neutral-bg)] border-[var(--neutral-border)]'
+    }
+    const color = colors[sentiment];
+
     return (
-        <span className="text-[11px] font-medium capitalize" style={{ color }}>
-            {sentiment}{confidence ? ` ${confidence}%` : ''}
+        <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-widest border uppercase ${color}`}>
+            {sentiment}{confidence ? ` • ${confidence}%` : ''}
         </span>
     );
 }
@@ -436,9 +431,9 @@ function formatDate(dateStr) {
         const date = new Date(dateStr);
         const now = new Date();
         const diff = Math.floor((now - date) / (1000 * 60));
-        if (diff < 60) return `${diff}m ago`;
-        if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        if (diff < 60) return `-${diff}m`;
+        if (diff < 1440) return `-${Math.floor(diff / 60)}H`;
+        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }).toUpperCase();
     } catch {
         return dateStr;
     }
