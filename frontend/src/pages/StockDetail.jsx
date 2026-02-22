@@ -187,21 +187,27 @@ function TradingViewChart({ data, chartMode, indicators, stock, patterns, active
 
     // Update markers independently so we don't recreate the chart
     useEffect(() => {
-        if (!candleSeriesRef.current || !patterns) return;
+        if (!candleSeriesRef.current || !patterns || !data) return;
 
         const markers = [];
+        let targetIndex = null;
+
         for (const p of patterns) {
             const time = timeMapRef.current.get(p.date);
             if (time !== undefined) {
                 // Determine if this is the pattern the user just clicked
                 const isActive = activePatternDate === p.date && p.type === window.lastClickedPatternType;
 
+                if (isActive) {
+                    targetIndex = data.findIndex(d => (d.time || d.date) === p.date);
+                }
+
                 markers.push({
                     time: time,
                     position: isActive ? 'aboveBar' : (p.signal === 'bullish' ? 'belowBar' : p.signal === 'bearish' ? 'aboveBar' : 'aboveBar'),
                     color: isActive ? '#FFFFFF' : (p.signal === 'bullish' ? '#00E676' : p.signal === 'bearish' ? '#FF1744' : '#F59E0B'),
                     shape: isActive ? 'arrowDown' : (p.signal === 'bullish' ? 'arrowUp' : p.signal === 'bearish' ? 'arrowDown' : 'square'),
-                    text: p.type,
+                    text: isActive ? `【  ${p.type.toUpperCase()}  】` : p.type,
                     size: isActive ? 2 : 1
                 });
             }
@@ -214,7 +220,39 @@ function TradingViewChart({ data, chartMode, indicators, stock, patterns, active
         });
 
         candleSeriesRef.current.setMarkers(markers);
-    }, [patterns, activePatternDate]);
+
+        // Cinematic smooth pan to center the active pattern
+        if (targetIndex !== null && targetIndex !== -1 && chartRef.current) {
+            const currentRange = chartRef.current.timeScale().getVisibleLogicalRange();
+            if (currentRange) {
+                const width = currentRange.to - currentRange.from;
+                const newFrom = targetIndex - width / 2;
+                const newTo = targetIndex + width / 2;
+
+                let start = null;
+                const duration = 700; // ms transition
+
+                const animateScroll = (timestamp) => {
+                    if (!start) start = timestamp;
+                    const progress = Math.min((timestamp - start) / duration, 1);
+                    // easeOutQuart for super smooth deceleration
+                    const ease = 1 - Math.pow(1 - progress, 4);
+
+                    const f = currentRange.from + (newFrom - currentRange.from) * ease;
+                    const t = currentRange.to + (newTo - currentRange.to) * ease;
+
+                    if (chartRef.current) {
+                        chartRef.current.timeScale().setVisibleLogicalRange({ from: f, to: t });
+                    }
+
+                    if (progress < 1) {
+                        window.requestAnimationFrame(animateScroll);
+                    }
+                };
+                window.requestAnimationFrame(animateScroll);
+            }
+        }
+    }, [patterns, activePatternDate, data]);
 
     return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
 }
