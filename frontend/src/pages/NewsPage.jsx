@@ -76,8 +76,8 @@ export default function NewsPage() {
                     affected_stocks: res.data.analysis.affected_stocks || [],
                 } : a
             ));
-        } catch {
-            alert('Analysis failed. Check Gemini API key.');
+        } catch (err) {
+            alert('Analysis failed. The AI might be rate limited — wait 30 seconds and try again, or check your API keys.');
         } finally {
             setAnalyzingId(null);
         }
