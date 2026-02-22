@@ -1,51 +1,192 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-    ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis,
-    CartesianGrid, Tooltip as RechartsTooltip, ReferenceLine, Cell
-} from 'recharts';
+import { createChart, CrosshairMode } from 'lightweight-charts';
 import { analyzeStock, getPrediction, explainPattern, addToWatchlist, getIntraday } from '../api';
 
 // ═══════════════════════════════════════════════════════════════════════
-// CUSTOM CANDLESTICK SHAPE for Recharts
+// TradingView Lightweight Charts — proper OHLC candlestick rendering
 // ═══════════════════════════════════════════════════════════════════════
-const CandlestickShape = (props) => {
-    const { x, y, width, height, payload } = props;
-    if (!payload) return null;
 
-    const { open, close, high, low } = payload;
-    const isBull = close >= open;
-    const fillColor = isBull ? '#00E676' : '#FF1744';
-    const bodyTop = Math.min(open, close);
-    const bodyBottom = Math.max(open, close);
+function TradingViewChart({ data, chartMode, indicators, stock }) {
+    const containerRef = useRef(null);
+    const chartRef = useRef(null);
+    const candleSeriesRef = useRef(null);
+    const volumeSeriesRef = useRef(null);
+    const sma50Ref = useRef(null);
+    const sma200Ref = useRef(null);
 
-    // Scale calculations
-    const chartHeight = props.background?.height || 400;
-    const yScale = props.yAxis || {};
+    useEffect(() => {
+        if (!containerRef.current || !data || data.length === 0) return;
 
-    return (
-        <g>
-            {/* Wick (high-low line) */}
-            <line
-                x1={x + width / 2} y1={y}
-                x2={x + width / 2} y2={y + Math.abs(height)}
-                stroke={fillColor} strokeWidth={1.5} opacity={0.7}
-            />
-            {/* Body */}
-            <rect
-                x={x + width * 0.15}
-                y={y + Math.abs(height) * (1 - (bodyBottom - low) / (high - low || 1))}
-                width={width * 0.7}
-                height={Math.max(1, Math.abs(height) * Math.abs(close - open) / (high - low || 1))}
-                fill={isBull ? fillColor : fillColor}
-                stroke={fillColor}
-                strokeWidth={1}
-                rx={1}
-                opacity={0.9}
-            />
-        </g>
-    );
-};
+        // Destroy previous chart
+        if (chartRef.current) {
+            chartRef.current.remove();
+            chartRef.current = null;
+        }
+
+        const chart = createChart(containerRef.current, {
+            width: containerRef.current.clientWidth,
+            height: containerRef.current.clientHeight,
+            layout: {
+                background: { color: '#030508' },
+                textColor: '#64748B',
+                fontFamily: "'Roboto Mono', monospace",
+                fontSize: 10,
+            },
+            grid: {
+                vertLines: { color: 'rgba(255,255,255,0.03)' },
+                horzLines: { color: 'rgba(255,255,255,0.04)' },
+            },
+            crosshair: {
+                mode: CrosshairMode.Normal,
+                vertLine: { color: 'rgba(255,255,255,0.15)', width: 1, style: 3, labelBackgroundColor: '#1a1f2e' },
+                horzLine: { color: 'rgba(255,255,255,0.15)', width: 1, style: 3, labelBackgroundColor: '#1a1f2e' },
+            },
+            rightPriceScale: {
+                borderColor: 'rgba(255,255,255,0.08)',
+                scaleMargins: { top: 0.1, bottom: 0.2 },
+            },
+            timeScale: {
+                borderColor: 'rgba(255,255,255,0.08)',
+                timeVisible: chartMode === 'intraday',
+                secondsVisible: false,
+                rightOffset: 5,
+                barSpacing: data.length > 300 ? 3 : data.length > 100 ? 5 : 8,
+            },
+            localization: {
+                priceFormatter: (p) => '₹' + p.toFixed(2),
+            },
+        });
+
+        chartRef.current = chart;
+
+        // ─── Candlestick series ──────────────────────────────────────
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: '#00E676',
+            downColor: '#FF1744',
+            borderUpColor: '#00E676',
+            borderDownColor: '#FF1744',
+            wickUpColor: '#00E67699',
+            wickDownColor: '#FF174499',
+        });
+
+        // Convert data to lightweight-charts format
+        const ohlcData = data.map((d, i) => {
+            let time;
+            if (chartMode === 'intraday' && d.time) {
+                // Parse "2026-02-20 11:35" format to Unix timestamp
+                const dt = new Date(d.time.replace(' ', 'T') + '+05:30');
+                time = Math.floor(dt.getTime() / 1000);
+            } else if (d.date) {
+                // "2026-02-20" → YYYY-MM-DD string (lightweight-charts accepts this)
+                time = d.date;
+            } else {
+                time = i;
+            }
+            return { time, open: d.open, high: d.high, low: d.low, close: d.close };
+        });
+
+        candleSeries.setData(ohlcData);
+        candleSeriesRef.current = candleSeries;
+
+        // ─── Volume histogram ────────────────────────────────────────
+        const volumeSeries = chart.addHistogramSeries({
+            priceFormat: { type: 'volume' },
+            priceScaleId: 'volume',
+        });
+
+        chart.priceScale('volume').applyOptions({
+            scaleMargins: { top: 0.85, bottom: 0 },
+            drawTicks: false,
+        });
+
+        const volData = data.map((d, i) => ({
+            time: ohlcData[i].time,
+            value: d.volume || 0,
+            color: d.close >= d.open ? 'rgba(0,230,118,0.15)' : 'rgba(255,23,68,0.15)',
+        }));
+
+        volumeSeries.setData(volData);
+        volumeSeriesRef.current = volumeSeries;
+
+        // ─── SMA lines (historical mode) ─────────────────────────────
+        if (chartMode === 'historical') {
+            // SMA 50
+            const sma50Data = data
+                .map((d, i) => d.sma50 != null ? { time: ohlcData[i].time, value: d.sma50 } : null)
+                .filter(Boolean);
+
+            if (sma50Data.length > 0) {
+                const sma50 = chart.addLineSeries({
+                    color: '#F59E0B',
+                    lineWidth: 2,
+                    priceLineVisible: false,
+                    lastValueVisible: false,
+                });
+                sma50.setData(sma50Data);
+                sma50Ref.current = sma50;
+            }
+
+            // SMA 200
+            const sma200Data = data
+                .map((d, i) => d.sma200 != null ? { time: ohlcData[i].time, value: d.sma200 } : null)
+                .filter(Boolean);
+
+            if (sma200Data.length > 0) {
+                const sma200 = chart.addLineSeries({
+                    color: '#06B6D4',
+                    lineWidth: 2,
+                    priceLineVisible: false,
+                    lastValueVisible: false,
+                });
+                sma200.setData(sma200Data);
+                sma200Ref.current = sma200;
+            }
+
+            // Support & Resistance price lines
+            if (indicators?.support) {
+                candleSeries.createPriceLine({
+                    price: indicators.support,
+                    color: '#00E67666',
+                    lineWidth: 1,
+                    lineStyle: 2,
+                    axisLabelVisible: true,
+                    title: 'SUP',
+                });
+            }
+            if (indicators?.resistance) {
+                candleSeries.createPriceLine({
+                    price: indicators.resistance,
+                    color: '#FF174466',
+                    lineWidth: 1,
+                    lineStyle: 2,
+                    axisLabelVisible: true,
+                    title: 'RES',
+                });
+            }
+        }
+
+        // Fit content
+        chart.timeScale().fitContent();
+
+        // ─── Resize handler ──────────────────────────────────────────
+        const resizeObserver = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                const { width, height } = entry.contentRect;
+                chart.applyOptions({ width, height });
+            }
+        });
+        resizeObserver.observe(containerRef.current);
+
+        return () => {
+            resizeObserver.disconnect();
+            chart.remove();
+            chartRef.current = null;
+        };
+    }, [data, chartMode, indicators]);
+
+    return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+}
 
 export default function StockDetail() {
     const { symbol } = useParams();
@@ -294,59 +435,19 @@ export default function StockDetail() {
                     {uniquePatterns.length > 0 && <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[var(--ai-purple)] opacity-60" /> PATTERN DETECTED</span>}
                 </div>
 
-                {/* Chart */}
-                <div className="p-4 bg-[#030508]" style={{ height: '480px' }}>
+                {/* Chart — TradingView Lightweight Charts */}
+                <div className="bg-[#030508]" style={{ height: '480px', position: 'relative' }}>
                     {intradayLoading && chartMode === 'intraday' ? (
                         <div className="w-full h-full flex items-center justify-center">
                             <div className="text-[var(--text-muted)] font-mono text-[12px] uppercase tracking-widest animate-pulse">Loading candlestick data...</div>
                         </div>
                     ) : (
-                        <ResponsiveContainer width="100%" height="100%">
-                            <ComposedChart data={candleData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                                <XAxis dataKey="label"
-                                    tick={{ fontSize: 10, fill: '#64748B', fontFamily: 'Roboto Mono' }}
-                                    tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
-                                    interval={chartMode === 'intraday' ? Math.floor(candleData.length / 12) : 'preserveStartEnd'}
-                                    dy={10} />
-                                <YAxis domain={['auto', 'auto']}
-                                    tick={{ fontSize: 10, fill: '#64748B', fontFamily: 'Roboto Mono' }}
-                                    tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
-                                    tickFormatter={(v) => `₹${v.toLocaleString()}`}
-                                    width={80} dx={-10} />
-                                <RechartsTooltip content={<CandlestickTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1, strokeDasharray: '4 4' }} />
-
-                                {/* Candlestick bars (using high-low range as bar height) */}
-                                <Bar dataKey="range" barSize={candleData.length > 200 ? 2 : candleData.length > 100 ? 4 : 8} isAnimationActive={false}>
-                                    {candleData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`}
-                                            fill={entry.isBull ? '#00E676' : '#FF1744'}
-                                            fillOpacity={0.85}
-                                            stroke={entry.isBull ? '#00E676' : '#FF1744'}
-                                            strokeWidth={0.5}
-                                        />
-                                    ))}
-                                </Bar>
-
-                                {/* Moving averages (historical mode only) */}
-                                {chartMode === 'historical' && (
-                                    <>
-                                        <Line type="monotone" dataKey="sma50" stroke="#F59E0B" strokeWidth={2} dot={false} connectNulls opacity={0.8} />
-                                        <Line type="monotone" dataKey="sma200" stroke="#06B6D4" strokeWidth={2} dot={false} connectNulls opacity={0.8} />
-                                    </>
-                                )}
-
-                                {/* Support & Resistance lines */}
-                                {chartMode === 'historical' && indicators?.support && (
-                                    <ReferenceLine y={indicators.support} stroke="#00E676" strokeDasharray="6 4" opacity={0.4} strokeWidth={1.5}
-                                        label={{ position: 'left', value: `SUP ₹${indicators.support}`, fill: '#00E676', fontSize: 9, fontFamily: 'monospace' }} />
-                                )}
-                                {chartMode === 'historical' && indicators?.resistance && (
-                                    <ReferenceLine y={indicators.resistance} stroke="#FF1744" strokeDasharray="6 4" opacity={0.4} strokeWidth={1.5}
-                                        label={{ position: 'left', value: `RES ₹${indicators.resistance}`, fill: '#FF1744', fontSize: 9, fontFamily: 'monospace' }} />
-                                )}
-                            </ComposedChart>
-                        </ResponsiveContainer>
+                        <TradingViewChart
+                            data={candleData}
+                            chartMode={chartMode}
+                            indicators={indicators}
+                            stock={stock}
+                        />
                     )}
                 </div>
 
