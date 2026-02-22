@@ -16,7 +16,6 @@ import hashlib
 import requests as http_requests
 from datetime import datetime
 from dotenv import load_dotenv
-from collections import Counter
 
 # Load .env from the backend directory
 _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
@@ -351,18 +350,29 @@ def _call_groq(prompt: str) -> str:
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _call_gemini(prompt: str) -> str:
-    """Call Gemini API as fallback."""
+    """Call Gemini API via REST (no SDK needed — saves ~80MB)."""
     if not GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY not set")
 
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel(GEMINI_MODEL)
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        raise Exception(f"Gemini error: {str(e)}")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.3,
+            "maxOutputTokens": 1500,
+        }
+    }
+
+    response = http_requests.post(url, json=payload, timeout=30)
+
+    if response.status_code == 429:
+        raise Exception("Gemini rate limit hit")
+    if response.status_code != 200:
+        raise Exception(f"Gemini API error {response.status_code}: {response.text[:200]}")
+
+    data = response.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
