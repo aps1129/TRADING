@@ -21,12 +21,10 @@ from difflib import SequenceMatcher
 RSS_FEEDS = {
     "Moneycontrol": "https://www.moneycontrol.com/rss/latestnews.xml",
     "Economic Times": "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
-    "Business Standard": "https://www.business-standard.com/rss/markets-106.rss",
     "LiveMint": "https://www.livemint.com/rss/markets",
-    "Financial Express": "https://www.financialexpress.com/market/feed/",
     "NDTV Profit": "https://feeds.feedburner.com/ndtvprofit-latest",
     "Reuters India": "https://feeds.reuters.com/reuters/INtopNews",
-    "Investing.com": "https://in.investing.com/rss/news.rss",
+    "Investing.com": "https://in.investing.com/rss/news_301.rss",
 }
 
 # ─── Comprehensive Stock Symbol Database ──────────────────────────────────

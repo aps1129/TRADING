@@ -378,7 +378,7 @@ def fetch_and_store_news():
     """Background task: fetch news and store in database."""
     print("📰 Fetching news from all sources...")
     articles = fetch_all_feeds()
-    stored = 0
+    stored_ids = []
     for article in articles:
         article_id = save_article(
             source=article["source"],
@@ -389,8 +389,31 @@ def fetch_and_store_news():
             symbols=article.get("symbols_mentioned", []),
         )
         if article_id:
-            stored += 1
-    print(f"✅ Stored {stored} new articles out of {len(articles)} fetched")
+            stored_ids.append(article_id)
+            
+    print(f"✅ Stored {len(stored_ids)} new articles out of {len(articles)} fetched")
+
+    if stored_ids:
+        print("🤖 Auto-analyzing newly fetched articles...")
+        all_news = get_news(limit=1000)
+        # Process the newly fetched news up to a reasonable limit to not rate-limit API
+        new_news = [n for n in all_news if n["id"] in stored_ids][:15]
+        
+        for news in new_news:
+            try:
+                analysis = analyze_news_sentiment(news["title"], news.get("content", ""))
+                save_analysis(
+                    article_id=news["id"],
+                    sentiment=analysis["sentiment"],
+                    confidence=analysis["confidence"],
+                    key_points=analysis["key_points"],
+                    impact=analysis["impact"],
+                    affected_stocks=analysis.get("affected_stocks", []),
+                )
+                time.sleep(1) # rate limit buffer
+            except Exception as e:
+                print(f"⚠️ Auto-analysis failed for {news['id']}: {e}")
+        print("✅ Auto-analysis complete")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { getNews, fetchNews, analyzeArticle, analyzeText } from '../api';
 
 const SOURCES = [
-    'All Sources', 'Moneycontrol', 'Economic Times', 'Business Standard',
-    'LiveMint', 'Financial Express', 'NDTV Profit'
+    'All Sources', 'Moneycontrol', 'Economic Times', 'Reuters India',
+    'LiveMint', 'Investing.com', 'NDTV Profit'
 ];
 const SENTIMENTS = ['all', 'bullish', 'bearish', 'neutral'];
 
