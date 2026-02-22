@@ -1,0 +1,82 @@
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1a1f36;
+    line-height: 1.6;
+    background-color: #ffffff;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2em;
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 900;
+    color: #030508;
+    text-align: center;
+    border-bottom: 3px solid #6366f1;
+    padding-bottom: 0.5em;
+    margin-bottom: 1em;
+}
+
+h2 {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #4f46e5;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.25em;
+}
+
+h3 {
+    font-size: 1.4em;
+    font-weight: 600;
+    color: #1e293b;
+    margin-top: 1.25em;
+}
+
+p {
+    margin-bottom: 1em;
+    font-size: 1.05em;
+}
+
+ul {
+    margin-bottom: 1.5em;
+}
+
+li {
+    margin-bottom: 0.5em;
+}
+
+code {
+    font-family: 'Roboto Mono', 'Fira Code', monospace;
+    background: #f1f5f9;
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #db2777;
+    font-weight: bold;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #cbd5e1;
+    margin: 2em 0;
+}
+
+blockquote {
+    border-left: 4px solid #6366f1;
+    padding-left: 1em;
+    margin-left: 0;
+    color: #475569;
+    font-style: italic;
+    background: #f8fafc;
+    padding: 1em;
+    border-radius: 0 8px 8px 0;
+}
+
+strong {
+    color: #0f172a;
+    font-weight: 700;
+}
