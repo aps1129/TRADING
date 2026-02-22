@@ -14,16 +14,20 @@ def fetch_stock_data(symbol: str, period: str = "6mo") -> dict:
     Fetch stock data from Yahoo Finance.
     For Indian NSE stocks, appends .NS suffix.
     """
-    ticker_symbol = f"{symbol}.NS"
-    ticker = yf.Ticker(ticker_symbol)
+    symbols_to_try = [f"{symbol}.NS", f"{symbol}.BO", symbol]
+    hist = pd.DataFrame()
+    ticker_symbol = ""
+    ticker = None
 
     try:
-        hist = ticker.history(period=period)
-        if hist.empty:
-            # Try BSE
-            ticker_symbol = f"{symbol}.BO"
-            ticker = yf.Ticker(ticker_symbol)
-            hist = ticker.history(period=period)
+        for s in symbols_to_try:
+            t = yf.Ticker(s)
+            h = t.history(period=period)
+            if not h.empty:
+                ticker = t
+                hist = h
+                ticker_symbol = s
+                break
 
         if hist.empty:
             return {"error": f"No data found for {symbol}"}
@@ -79,10 +83,6 @@ def fetch_intraday_data(symbol: str, interval: str = "5m") -> dict:
     Intervals: 1m, 2m, 5m, 15m, 30m, 60m, 1h
     yfinance provides ~15 min delayed data for free.
     """
-    ticker_symbol = f"{symbol}.NS"
-    ticker = yf.Ticker(ticker_symbol)
-
-    # Select period based on interval
     period_map = {
         "1m": "2d",    # 1-min candles: max 7 days, use 2
         "2m": "5d",
@@ -95,12 +95,15 @@ def fetch_intraday_data(symbol: str, interval: str = "5m") -> dict:
     period = period_map.get(interval, "5d")
 
     try:
-        hist = ticker.history(period=period, interval=interval)
-        if hist.empty:
-            # Try BSE
-            ticker_symbol = f"{symbol}.BO"
-            ticker = yf.Ticker(ticker_symbol)
-            hist = ticker.history(period=period, interval=interval)
+        symbols_to_try = [f"{symbol}.NS", f"{symbol}.BO", symbol]
+        hist = pd.DataFrame()
+        
+        for s in symbols_to_try:
+            t = yf.Ticker(s)
+            h = t.history(period=period, interval=interval)
+            if not h.empty:
+                hist = h
+                break
 
         if hist.empty:
             return {"error": f"No intraday data found for {symbol}"}
@@ -554,14 +557,17 @@ def _safe_round_series(series: pd.Series) -> list:
 
 def get_quick_quote(symbol: str) -> dict:
     """Get a quick price quote for a stock."""
-    ticker_symbol = f"{symbol}.NS"
-    ticker = yf.Ticker(ticker_symbol)
     try:
-        hist = ticker.history(period="5d")
-        if hist.empty:
-            ticker_symbol = f"{symbol}.BO"
-            ticker = yf.Ticker(ticker_symbol)
-            hist = ticker.history(period="5d")
+        symbols_to_try = [f"{symbol}.NS", f"{symbol}.BO", symbol]
+        hist = pd.DataFrame()
+        
+        for s in symbols_to_try:
+            t = yf.Ticker(s)
+            h = t.history(period="5d")
+            if not h.empty:
+                hist = h
+                break
+                
         if hist.empty:
             return {"error": f"No data for {symbol}"}
 

@@ -422,18 +422,59 @@ def fetch_and_store_news():
 
 @app.get("/api/search/{query}")
 def api_search_stock(query: str):
-    """Search for Indian stocks by symbol or name."""
-    from news_scraper import COMMON_STOCKS
-
+    """Search for Indian stocks dynamically via Yahoo Finance API (Stocks, ETFs, Mutual Funds)."""
+    import requests
+    
+    url = f"https://query2.finance.yahoo.com/v1/finance/search?q={query}&quotesCount=10&newsCount=0"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    
     results = []
-    query_upper = query.upper()
-
-    for symbol, aliases in COMMON_STOCKS.items():
-        if query_upper in symbol or any(query_upper in a.upper() for a in aliases):
-            results.append({
-                "symbol": symbol,
-                "name": aliases[0] if aliases else symbol,
-            })
+    try:
+        response = requests.get(url, headers=headers, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            quotes = data.get("quotes", [])
+            
+            for q in quotes:
+                symbol = q.get("symbol", "")
+                exchange = q.get("exchange", "")
+                
+                # Filter for Indian exchanges (NSE, BSE). Or global if requested, but our backend
+                # primarily looks for .NS and .BO extensions. 
+                # We strip the extension to pass the clean symbol to the frontend.
+                clean_symbol = symbol
+                if clean_symbol.endswith(".NS"):
+                    clean_symbol = clean_symbol[:-3]
+                elif clean_symbol.endswith(".BO"):
+                    clean_symbol = clean_symbol[:-3]
+                else:
+                    # If it's not .NS or .BO, it might be an international stock or crypto.
+                    # We can keep it exactly as is, yfinance will handle it if we fix technical.py just slightly
+                    pass
+                
+                # Avoid duplicates
+                if not any(r["symbol"] == clean_symbol for r in results):
+                    results.append({
+                        "symbol": clean_symbol,
+                        "name": q.get("shortname", q.get("longname", clean_symbol)),
+                        "type": q.get("quoteType", "EQUITY"),
+                        "exchange": exchange
+                    })
+    except Exception as e:
+        print(f"⚠️ Search API error: {e}")
+        
+    # Fallback to local dict if API fails or returns nothing empty
+    if not results:
+        from news_scraper import COMMON_STOCKS
+        query_upper = query.upper()
+        for symbol, aliases in COMMON_STOCKS.items():
+            if query_upper in symbol or any(query_upper in a.upper() for a in aliases):
+                results.append({
+                    "symbol": symbol,
+                    "name": aliases[0] if aliases else symbol,
+                    "type": "LOCAL",
+                    "exchange": "NSE/BSE"
+                })
 
     return {"results": results[:20]}
 
