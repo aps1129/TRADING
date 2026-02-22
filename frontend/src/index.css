@@ -5,275 +5,309 @@
    Inspired by Bloomberg Terminal & TradingView
    ═══════════════════════════════════════════════════════════════ */
 
-:root {
-  /* Rich, deep dark theme */
-  --bg-base: #06090F;
-  --bg-card: #0D111A;
-  --bg-card-hover: #151A26;
-  --bg-surface: #131824;
-  --bg-elevated: #1C2333;
+@layer base {
+  :root {
+    /* Rich, deep dark theme */
+    --bg-base: #06090F;
+    --bg-card: #0D111A;
+    --bg-card-hover: #151A26;
+    --bg-surface: #131824;
+    --bg-elevated: #1C2333;
 
-  /* Premium Semantic Colors */
-  --bullish: #00E676;
-  --bullish-bg: rgba(0, 230, 118, 0.1);
-  --bullish-border: rgba(0, 230, 118, 0.3);
-  --bearish: #FF1744;
-  --bearish-bg: rgba(255, 23, 68, 0.1);
-  --bearish-border: rgba(255, 23, 68, 0.3);
-  --neutral: #FFD600;
-  --neutral-bg: rgba(255, 214, 0, 0.1);
-  --neutral-border: rgba(255, 214, 0, 0.3);
+    /* Premium Semantic Colors */
+    --bullish: #00E676;
+    --bullish-bg: rgba(0, 230, 118, 0.1);
+    --bullish-border: rgba(0, 230, 118, 0.3);
+    --bearish: #FF1744;
+    --bearish-bg: rgba(255, 23, 68, 0.1);
+    --bearish-border: rgba(255, 23, 68, 0.3);
+    --neutral: #FFD600;
+    --neutral-bg: rgba(255, 214, 0, 0.1);
+    --neutral-border: rgba(255, 214, 0, 0.3);
 
-  /* AI/Magic Purple */
-  --ai-purple: #D500F9;
-  --ai-purple-bg: rgba(213, 0, 249, 0.1);
-  --ai-purple-border: rgba(213, 0, 249, 0.3);
+    /* AI/Magic Purple */
+    --ai-purple: #D500F9;
+    --ai-purple-bg: rgba(213, 0, 249, 0.1);
+    --ai-purple-border: rgba(213, 0, 249, 0.3);
 
-  /* Accent Blue */
-  --accent: #2962FF;
-  --accent-glow: rgba(41, 98, 255, 0.4);
-  --accent-bg: rgba(41, 98, 255, 0.1);
+    /* Accent Blue */
+    --accent: #2962FF;
+    --accent-glow: rgba(41, 98, 255, 0.4);
+    --accent-bg: rgba(41, 98, 255, 0.1);
 
-  /* Text Hierarchy */
-  --text-white: #FFFFFF;
-  --text-primary: #ECEFF4;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+    /* Text Hierarchy */
+    --text-white: #FFFFFF;
+    --text-primary: #ECEFF4;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
 
-  /* Borders & Glass */
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.15);
-  --glass-bg: rgba(13, 17, 26, 0.7);
+    /* Borders & Glass */
+    --border: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(255, 255, 255, 0.15);
+    --glass-bg: rgba(13, 17, 26, 0.7);
 
-  /* Typography */
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, monospace;
+    /* Typography */
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-base);
+    background-image: radial-gradient(circle at top right, rgba(41, 98, 255, 0.05), transparent 40%),
+      radial-gradient(circle at bottom left, rgba(213, 0, 249, 0.03), transparent 40%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── Scrollbar ────────────────────────────────────── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-base);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+  }
+
+  th {
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+  }
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ─── Components layer — won't override Tailwind utilities ──── */
+@layer components {
+  .mono {
+    font-family: var(--font-mono);
+    letter-spacing: -0.02em;
+  }
+
+  /* ─── Cards & Surfaces ─────────────────────────────────────────── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.5);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  }
+
+  .card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
+  }
+
+  .glass-nav {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ─── Badges ──────────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: var(--font-mono);
+  }
+
+  .badge-bullish {
+    background: var(--bullish-bg);
+    color: var(--bullish);
+    border: 1px solid var(--bullish-border);
+  }
+
+  .badge-bearish {
+    background: var(--bearish-bg);
+    color: var(--bearish);
+    border: 1px solid var(--bearish-border);
+  }
+
+  .badge-neutral {
+    background: var(--neutral-bg);
+    color: var(--neutral);
+    border: 1px solid var(--neutral-border);
+  }
+
+  .badge-ai {
+    background: var(--ai-purple-bg);
+    color: var(--ai-purple);
+    border: 1px solid var(--ai-purple-border);
+    box-shadow: 0 0 10px rgba(213, 0, 249, 0.2);
+  }
+
+  /* ─── Buttons ────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: var(--font-body);
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 15px var(--accent-glow);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #448AFF;
+    box-shadow: 0 0 25px var(--accent-glow);
+  }
+
+  .btn-secondary {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--bg-elevated);
+    border-color: var(--border-hover);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--bg-surface);
+    color: var(--text-white);
+  }
+
+  .btn-ai {
+    background: var(--ai-purple);
+    color: #fff;
+    box-shadow: 0 0 15px var(--ai-purple-bg);
+  }
+
+  .btn-ai:hover:not(:disabled) {
+    background: #E040FB;
+    box-shadow: 0 0 25px var(--ai-purple-bg);
+  }
+
+  /* ─── Inputs ──────────────────────────────────────────────────── */
+  .input {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-size: 13px;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+
+  .input::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* ─── Table ──────────────────────────────────────────────────── */
+  .table-zebra tr {
+    transition: background 0.2s ease;
+  }
+
+  .table-zebra tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .table-zebra tr:hover {
+    background: var(--bg-surface) !important;
+  }
+
+  /* ─── Text Colors ──────────────────────────────────────────── */
+  .text-bullish {
+    color: var(--bullish);
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+  }
+
+  .text-bearish {
+    color: var(--bearish);
+    text-shadow: 0 0 10px rgba(255, 23, 68, 0.3);
+  }
+
+  .text-neutral-color {
+    color: var(--neutral);
+  }
+
+  .text-ai {
+    color: var(--ai-purple);
+    text-shadow: 0 0 10px rgba(213, 0, 249, 0.3);
+  }
 }
 
-html {
-  font-size: 14px;
-}
-
-body {
-  font-family: var(--font-body);
-  background: var(--bg-base);
-  background-image: radial-gradient(circle at top right, rgba(41, 98, 255, 0.05), transparent 40%),
-    radial-gradient(circle at bottom left, rgba(213, 0, 249, 0.03), transparent 40%);
-  color: var(--text-primary);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ─── Scrollbar ────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-base);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
-}
-
-/* ─── Global Utilities ─────────────────────────────────────────── */
-.mono {
-  font-family: var(--font-mono);
-  letter-spacing: -0.02em;
-}
-
-/* ─── Cards & Surfaces ─────────────────────────────────────────── */
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.5);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  position: relative;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-}
-
-.card:hover {
-  border-color: var(--border-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
-}
-
-.glass-nav {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
-}
-
-/* ─── Badges ──────────────────────────────────────────────────── */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-family: var(--font-mono);
-}
-
-.badge-bullish {
-  background: var(--bullish-bg);
-  color: var(--bullish);
-  border: 1px solid var(--bullish-border);
-}
-
-.badge-bearish {
-  background: var(--bearish-bg);
-  color: var(--bearish);
-  border: 1px solid var(--bearish-border);
-}
-
-.badge-neutral {
-  background: var(--neutral-bg);
-  color: var(--neutral);
-  border: 1px solid var(--neutral-border);
-}
-
-.badge-ai {
-  background: var(--ai-purple-bg);
-  color: var(--ai-purple);
-  border: 1px solid var(--ai-purple-border);
-  box-shadow: 0 0 10px rgba(213, 0, 249, 0.2);
-}
-
-/* ─── Buttons ────────────────────────────────────────────────── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: var(--font-body);
-}
-
-.btn:active {
-  transform: scale(0.97);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-primary {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 0 15px var(--accent-glow);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #448AFF;
-  box-shadow: 0 0 25px var(--accent-glow);
-}
-
-.btn-secondary {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  border-color: var(--border);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bg-elevated);
-  border-color: var(--border-hover);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-}
-
-.btn-ghost:hover:not(:disabled) {
-  background: var(--bg-surface);
-  color: var(--text-white);
-}
-
-/* ─── Inputs ──────────────────────────────────────────────────── */
-.input {
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: var(--text-primary);
-  font-size: 13px;
-  transition: all 0.2s ease;
-  width: 100%;
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-bg);
-}
-
-.input::placeholder {
-  color: var(--text-muted);
-}
-
-/* ─── Table ──────────────────────────────────────────────────── */
-.table-zebra tr {
-  transition: background 0.2s ease;
-}
-
-.table-zebra tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.table-zebra tr:hover {
-  background: var(--bg-surface) !important;
-}
-
-th {
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 11px;
-}
-
-/* ─── Animations ─────────────────────────────────────────────── */
+/* ─── Animations (outside layers for global availability) ─── */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
 
   to {
@@ -282,15 +316,27 @@ th {
   }
 }
 
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
 .animate-up {
-  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .skeleton {
   background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-surface) 50%, var(--bg-card) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 @keyframes shimmer {
@@ -301,24 +347,4 @@ th {
   100% {
     background-position: 200% 0;
   }
-}
-
-/* ─── Text Colors ──────────────────────────────────────────── */
-.text-bullish {
-  color: var(--bullish);
-  text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
-}
-
-.text-bearish {
-  color: var(--bearish);
-  text-shadow: 0 0 10px rgba(255, 23, 68, 0.3);
-}
-
-.text-neutral-color {
-  color: var(--neutral);
-}
-
-.text-ai {
-  color: var(--ai-purple);
-  text-shadow: 0 0 10px rgba(213, 0, 249, 0.3);
 }

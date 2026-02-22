@@ -73,6 +73,67 @@ def fetch_stock_data(symbol: str, period: str = "6mo") -> dict:
         return {"error": str(e)}
 
 
+def fetch_intraday_data(symbol: str, interval: str = "5m") -> dict:
+    """
+    Fetch intraday candlestick data for real-time chart analysis.
+    Intervals: 1m, 2m, 5m, 15m, 30m, 60m, 1h
+    yfinance provides ~15 min delayed data for free.
+    """
+    ticker_symbol = f"{symbol}.NS"
+    ticker = yf.Ticker(ticker_symbol)
+
+    # Select period based on interval
+    period_map = {
+        "1m": "2d",    # 1-min candles: max 7 days, use 2
+        "2m": "5d",
+        "5m": "5d",    # 5-min candles: 5 days
+        "15m": "10d",
+        "30m": "1mo",
+        "60m": "1mo",
+        "1h": "1mo",
+    }
+    period = period_map.get(interval, "5d")
+
+    try:
+        hist = ticker.history(period=period, interval=interval)
+        if hist.empty:
+            # Try BSE
+            ticker_symbol = f"{symbol}.BO"
+            ticker = yf.Ticker(ticker_symbol)
+            hist = ticker.history(period=period, interval=interval)
+
+        if hist.empty:
+            return {"error": f"No intraday data found for {symbol}"}
+
+        candles = []
+        for ts, row in hist.iterrows():
+            candles.append({
+                "time": ts.strftime("%Y-%m-%d %H:%M"),
+                "date": ts.strftime("%Y-%m-%d"),
+                "open": round(float(row["Open"]), 2),
+                "high": round(float(row["High"]), 2),
+                "low": round(float(row["Low"]), 2),
+                "close": round(float(row["Close"]), 2),
+                "volume": int(row["Volume"]),
+            })
+
+        current_price = candles[-1]["close"] if candles else 0
+        prev_close = candles[0]["open"] if candles else current_price
+        change = round(current_price - prev_close, 2)
+        change_pct = round((change / prev_close) * 100, 2) if prev_close > 0 else 0
+
+        return {
+            "symbol": symbol.upper(),
+            "interval": interval,
+            "candles": candles,
+            "current_price": current_price,
+            "change": change,
+            "change_percent": change_pct,
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+
 def calculate_indicators(hist_data: list) -> dict:
     """Calculate technical indicators from historical price data."""
     if not hist_data or len(hist_data) < 20:
@@ -129,6 +190,171 @@ def calculate_indicators(hist_data: list) -> dict:
     return indicators
 
 
+def detect_candlestick_patterns(hist_data: list) -> list:
+    """
+    Detect Japanese candlestick patterns — the classic patterns
+    intraday traders use to read market sentiment.
+    """
+    if not hist_data or len(hist_data) < 5:
+        return []
+
+    df = pd.DataFrame(hist_data)
+    o = df["open"].astype(float)
+    h = df["high"].astype(float)
+    l = df["low"].astype(float)
+    c = df["close"].astype(float)
+    patterns = []
+
+    # Helper: body size and range
+    body = (c - o).abs()
+    candle_range = h - l
+    avg_body = body.rolling(window=20, min_periods=5).mean()
+
+    for i in range(max(3, len(df) - 15), len(df)):
+        date = hist_data[i]["date"]
+        b = body.iloc[i]
+        r = candle_range.iloc[i]
+        ab = avg_body.iloc[i] if not pd.isna(avg_body.iloc[i]) else b
+
+        if r == 0:
+            continue
+
+        upper_shadow = h.iloc[i] - max(o.iloc[i], c.iloc[i])
+        lower_shadow = min(o.iloc[i], c.iloc[i]) - l.iloc[i]
+        is_bull = c.iloc[i] > o.iloc[i]
+        is_bear = c.iloc[i] < o.iloc[i]
+
+        # ─── Doji (small body, long wicks) ──────────────────
+        if b < r * 0.1 and r > 0:
+            patterns.append({
+                "type": "Doji",
+                "description": f"Doji on {date} — indecision in the market, body is very small relative to the range",
+                "signal": "neutral",
+                "confidence": 55,
+                "date": date,
+                "category": "candlestick",
+            })
+
+        # ─── Hammer (small body at top, long lower shadow) ──
+        elif lower_shadow > b * 2 and upper_shadow < b * 0.5 and is_bull and i > 2:
+            # Check if preceded by downtrend
+            if c.iloc[i-2] > c.iloc[i-1]:
+                patterns.append({
+                    "type": "Hammer",
+                    "description": f"Hammer on {date} — buyers pushing price up from the low, potential reversal",
+                    "signal": "bullish",
+                    "confidence": 65,
+                    "date": date,
+                    "category": "candlestick",
+                })
+
+        # ─── Inverted Hammer ─────────────────────────────────
+        elif upper_shadow > b * 2 and lower_shadow < b * 0.5 and b > 0 and i > 2:
+            if c.iloc[i-2] > c.iloc[i-1]:
+                patterns.append({
+                    "type": "Inverted Hammer",
+                    "description": f"Inverted Hammer on {date} — potential bullish reversal after downtrend",
+                    "signal": "bullish",
+                    "confidence": 60,
+                    "date": date,
+                    "category": "candlestick",
+                })
+
+        # ─── Bullish Engulfing ───────────────────────────────
+        if i > 0 and is_bull:
+            prev_bear = c.iloc[i-1] < o.iloc[i-1]
+            if prev_bear and o.iloc[i] <= c.iloc[i-1] and c.iloc[i] >= o.iloc[i-1] and b > body.iloc[i-1]:
+                patterns.append({
+                    "type": "Bullish Engulfing",
+                    "description": f"Bullish Engulfing on {date} — green candle fully engulfs prior red candle, strong buy signal",
+                    "signal": "bullish",
+                    "confidence": 72,
+                    "date": date,
+                    "category": "candlestick",
+                })
+
+        # ─── Bearish Engulfing ───────────────────────────────
+        if i > 0 and is_bear:
+            prev_bull = c.iloc[i-1] > o.iloc[i-1]
+            if prev_bull and o.iloc[i] >= c.iloc[i-1] and c.iloc[i] <= o.iloc[i-1] and b > body.iloc[i-1]:
+                patterns.append({
+                    "type": "Bearish Engulfing",
+                    "description": f"Bearish Engulfing on {date} — red candle fully engulfs prior green candle, strong sell signal",
+                    "signal": "bearish",
+                    "confidence": 72,
+                    "date": date,
+                    "category": "candlestick",
+                })
+
+        # ─── Morning Star (3-candle bullish reversal) ────────
+        if i >= 2:
+            c1_bear = c.iloc[i-2] < o.iloc[i-2] and body.iloc[i-2] > ab * 0.5
+            c2_small = body.iloc[i-1] < ab * 0.3
+            c3_bull = is_bull and b > ab * 0.5
+            if c1_bear and c2_small and c3_bull and c.iloc[i] > (o.iloc[i-2] + c.iloc[i-2]) / 2:
+                patterns.append({
+                    "type": "Morning Star",
+                    "description": f"Morning Star on {date} — 3-candle bullish reversal pattern, trend may reverse upward",
+                    "signal": "bullish",
+                    "confidence": 75,
+                    "date": date,
+                    "category": "candlestick",
+                })
+
+        # ─── Evening Star (3-candle bearish reversal) ────────
+        if i >= 2:
+            c1_bull = c.iloc[i-2] > o.iloc[i-2] and body.iloc[i-2] > ab * 0.5
+            c2_small = body.iloc[i-1] < ab * 0.3
+            c3_bear = is_bear and b > ab * 0.5
+            if c1_bull and c2_small and c3_bear and c.iloc[i] < (o.iloc[i-2] + c.iloc[i-2]) / 2:
+                patterns.append({
+                    "type": "Evening Star",
+                    "description": f"Evening Star on {date} — 3-candle bearish reversal pattern, trend may reverse downward",
+                    "signal": "bearish",
+                    "confidence": 75,
+                    "date": date,
+                    "category": "candlestick",
+                })
+
+        # ─── Three White Soldiers ────────────────────────────
+        if i >= 2:
+            all_bull = all(c.iloc[i-j] > o.iloc[i-j] for j in range(3))
+            ascending = c.iloc[i] > c.iloc[i-1] > c.iloc[i-2]
+            decent_body = all(body.iloc[i-j] > ab * 0.4 for j in range(3))
+            if all_bull and ascending and decent_body:
+                patterns.append({
+                    "type": "Three White Soldiers",
+                    "description": f"Three White Soldiers ending {date} — three consecutive bullish candles, strong uptrend signal",
+                    "signal": "bullish",
+                    "confidence": 78,
+                    "date": date,
+                    "category": "candlestick",
+                })
+
+        # ─── Three Black Crows ───────────────────────────────
+        if i >= 2:
+            all_bear = all(c.iloc[i-j] < o.iloc[i-j] for j in range(3))
+            descending = c.iloc[i] < c.iloc[i-1] < c.iloc[i-2]
+            decent_body = all(body.iloc[i-j] > ab * 0.4 for j in range(3))
+            if all_bear and descending and decent_body:
+                patterns.append({
+                    "type": "Three Black Crows",
+                    "description": f"Three Black Crows ending {date} — three consecutive bearish candles, strong downtrend signal",
+                    "signal": "bearish",
+                    "confidence": 78,
+                    "date": date,
+                    "category": "candlestick",
+                })
+
+    # Deduplicate by type (keep highest confidence)
+    seen = {}
+    for p in patterns:
+        key = p["type"]
+        if key not in seen or p["confidence"] > seen[key]["confidence"]:
+            seen[key] = p
+    return list(seen.values())
+
+
 def detect_patterns(hist_data: list, indicators: dict) -> list:
     """Detect chart patterns from historical data and indicators."""
     if not hist_data or "error" in indicators:
@@ -138,6 +364,10 @@ def detect_patterns(hist_data: list, indicators: dict) -> list:
     close = df["close"].astype(float)
     patterns = []
     current_price = float(close.iloc[-1])
+
+    # ─── Candlestick Patterns ──────────────────────────────────────────
+    candlestick_patterns = detect_candlestick_patterns(hist_data)
+    patterns.extend(candlestick_patterns)
 
     # ─── Golden Cross / Death Cross ───────────────────────────────────
     sma_50 = indicators.get("sma_50", [])

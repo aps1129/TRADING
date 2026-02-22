@@ -23,6 +23,8 @@ export const explainPattern = (symbol, patternType) =>
     api.get(`/stocks/${symbol}/explain-pattern`, { params: { pattern_type: patternType } });
 export const getPrediction = (symbol) =>
     api.get(`/stocks/${symbol}/prediction`);
+export const getIntraday = (symbol, interval = '5m') =>
+    api.get(`/stocks/${symbol}/intraday`, { params: { interval } });
 
 // ─── News ────────────────────────────────────────────────────
 export const getNews = (params = {}) =>

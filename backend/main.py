@@ -25,7 +25,7 @@ from database import init_db, add_to_watchlist, remove_from_watchlist, get_watch
 from database import save_article, save_analysis, get_news
 from database import save_pattern, get_patterns
 from database import save_prediction, get_predictions, get_prediction_stats, update_prediction_outcome
-from technical import fetch_stock_data, calculate_indicators, detect_patterns, get_quick_quote
+from technical import fetch_stock_data, calculate_indicators, detect_patterns, get_quick_quote, fetch_intraday_data, detect_candlestick_patterns
 from news_scraper import fetch_all_feeds, get_news_for_stock, scrape_article_content
 from ai_analysis import explain_pattern, analyze_news_sentiment, generate_prediction, get_api_status
 
@@ -143,6 +143,36 @@ def api_analyze_stock(symbol: str, period: str = "6mo"):
         "stock": data,
         "indicators": indicators,
         "patterns": patterns,
+    }
+
+
+@app.get("/api/stocks/{symbol}/intraday")
+def api_intraday(symbol: str, interval: str = "5m"):
+    """
+    Get intraday candlestick data with pattern detection.
+    Intervals: 1m, 5m, 15m, 30m, 1h
+    """
+    valid_intervals = ["1m", "2m", "5m", "15m", "30m", "60m", "1h"]
+    if interval not in valid_intervals:
+        raise HTTPException(status_code=400, detail=f"Invalid interval. Use: {', '.join(valid_intervals)}")
+
+    data = fetch_intraday_data(symbol, interval)
+    if "error" in data:
+        raise HTTPException(status_code=404, detail=data["error"])
+
+    # Detect candlestick patterns on intraday data
+    candles = data.get("candles", [])
+    patterns = detect_candlestick_patterns(candles)
+
+    return {
+        "symbol": data["symbol"],
+        "interval": interval,
+        "candles": candles,
+        "patterns": patterns,
+        "current_price": data.get("current_price", 0),
+        "change": data.get("change", 0),
+        "change_percent": data.get("change_percent", 0),
+        "total_candles": len(candles),
     }
 
 
@@ -305,7 +335,7 @@ def api_status():
     return {
         "status": "running",
         "timestamp": datetime.now().isoformat(),
-        "gemini_api": ai_status,
+        "ai": ai_status,
     }
 
 
