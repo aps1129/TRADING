@@ -35,7 +35,13 @@ export default function NewsPage() {
             if (sentiment !== 'all') params.sentiment = sentiment;
             params.limit = 100;
             const res = await getNews(params);
-            setArticles(res.data.articles || []);
+
+            // If filtering by sentiment locally instead of just via backend (extra safety)
+            let fetchedArticles = res.data.articles || [];
+            if (sentiment !== 'all') {
+                fetchedArticles = fetchedArticles.filter(a => a.sentiment === sentiment || (sentiment === 'neutral' && a.sentiment === 'pending'));
+            }
+            setArticles(fetchedArticles);
         } catch {
             setArticles([]);
         } finally {
