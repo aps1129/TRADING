@@ -211,7 +211,7 @@ def detect_candlestick_patterns(hist_data: list) -> list:
     avg_body = body.rolling(window=20, min_periods=5).mean()
 
     for i in range(max(3, len(df) - 15), len(df)):
-        date = hist_data[i]["date"]
+        date = hist_data[i].get("time", hist_data[i].get("date"))
         b = body.iloc[i]
         r = candle_range.iloc[i]
         ab = avg_body.iloc[i] if not pd.isna(avg_body.iloc[i]) else b

@@ -7,13 +7,14 @@ import { analyzeStock, getPrediction, explainPattern, addToWatchlist, getIntrada
 // TradingView Lightweight Charts — proper OHLC candlestick rendering
 // ═══════════════════════════════════════════════════════════════════════
 
-function TradingViewChart({ data, chartMode, indicators, stock }) {
+function TradingViewChart({ data, chartMode, indicators, stock, patterns, activePatternDate }) {
     const containerRef = useRef(null);
     const chartRef = useRef(null);
     const candleSeriesRef = useRef(null);
     const volumeSeriesRef = useRef(null);
     const sma50Ref = useRef(null);
     const sma200Ref = useRef(null);
+    const timeMapRef = useRef(new Map());
 
     useEffect(() => {
         if (!containerRef.current || !data || data.length === 0) return;
@@ -74,15 +75,14 @@ function TradingViewChart({ data, chartMode, indicators, stock }) {
         const ohlcData = data.map((d, i) => {
             let time;
             if (chartMode === 'intraday' && d.time) {
-                // Parse "2026-02-20 11:35" format to Unix timestamp
                 const dt = new Date(d.time.replace(' ', 'T') + '+05:30');
                 time = Math.floor(dt.getTime() / 1000);
             } else if (d.date) {
-                // "2026-02-20" → YYYY-MM-DD string (lightweight-charts accepts this)
-                time = d.date;
+                time = d.date.substring(0, 10);
             } else {
                 time = i;
             }
+            timeMapRef.current.set(d.time || d.date, time);
             return { time, open: d.open, high: d.high, low: d.low, close: d.close };
         });
 
@@ -185,6 +185,37 @@ function TradingViewChart({ data, chartMode, indicators, stock }) {
         };
     }, [data, chartMode, indicators]);
 
+    // Update markers independently so we don't recreate the chart
+    useEffect(() => {
+        if (!candleSeriesRef.current || !patterns) return;
+
+        const markers = [];
+        for (const p of patterns) {
+            const time = timeMapRef.current.get(p.date);
+            if (time !== undefined) {
+                // Determine if this is the pattern the user just clicked
+                const isActive = activePatternDate === p.date && p.type === window.lastClickedPatternType;
+
+                markers.push({
+                    time: time,
+                    position: isActive ? 'aboveBar' : (p.signal === 'bullish' ? 'belowBar' : p.signal === 'bearish' ? 'aboveBar' : 'aboveBar'),
+                    color: isActive ? '#FFFFFF' : (p.signal === 'bullish' ? '#00E676' : p.signal === 'bearish' ? '#FF1744' : '#F59E0B'),
+                    shape: isActive ? 'arrowDown' : (p.signal === 'bullish' ? 'arrowUp' : p.signal === 'bearish' ? 'arrowDown' : 'square'),
+                    text: p.type,
+                    size: isActive ? 2 : 1
+                });
+            }
+        }
+
+        // Sort markers by time as required by lightweight-charts
+        markers.sort((a, b) => {
+            if (typeof a.time === 'string' && typeof b.time === 'string') return a.time.localeCompare(b.time);
+            return a.time - b.time;
+        });
+
+        candleSeriesRef.current.setMarkers(markers);
+    }, [patterns, activePatternDate]);
+
     return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
 }
 
@@ -202,6 +233,7 @@ export default function StockDetail() {
     const [interval, setInterval] = useState('5m');
     const [chartMode, setChartMode] = useState('intraday'); // 'intraday' or 'historical'
     const [expandedPattern, setExpandedPattern] = useState(null);
+    const [activePatternDate, setActivePatternDate] = useState(null);
     const [patternExplanations, setPatternExplanations] = useState({});
     const [explainLoading, setExplainLoading] = useState('');
 
@@ -255,9 +287,18 @@ export default function StockDetail() {
         }
     };
 
-    const loadPatternExplanation = async (patternType) => {
+    const loadPatternExplanation = async (p) => {
+        const patternType = p.type;
+        window.lastClickedPatternType = patternType; // Quick hack for markers
+        if (expandedPattern === patternType) {
+            setExpandedPattern(null);
+            setActivePatternDate(null);
+            return;
+        }
+
+        setActivePatternDate(p.date); // Highlight on chart
         if (patternExplanations[patternType]) {
-            setExpandedPattern(expandedPattern === patternType ? null : patternType);
+            setExpandedPattern(patternType);
             return;
         }
         try {
@@ -447,6 +488,8 @@ export default function StockDetail() {
                             chartMode={chartMode}
                             indicators={indicators}
                             stock={stock}
+                            patterns={allPatterns}
+                            activePatternDate={activePatternDate}
                         />
                     )}
                 </div>
@@ -494,8 +537,8 @@ export default function StockDetail() {
                                 const clr = p.signal === 'bullish' ? 'var(--bullish)' : p.signal === 'bearish' ? 'var(--bearish)' : 'var(--neutral)';
                                 const bgClr = p.signal === 'bullish' ? 'var(--bullish-bg)' : p.signal === 'bearish' ? 'var(--bearish-bg)' : 'var(--neutral-bg)';
                                 return (
-                                    <div key={i} className="border-b border-[var(--border)]">
-                                        <button onClick={() => loadPatternExplanation(p.type)}
+                                    <div key={i} className={`border-b border-[var(--border)] transition-colors ${activePatternDate === p.date && expandedPattern === p.type ? 'bg-[var(--bg-surface)]' : ''}`}>
+                                        <button onClick={() => loadPatternExplanation(p)}
                                             className="w-full flex items-center justify-between px-6 py-5 text-left cursor-pointer hover:bg-[var(--bg-surface)] transition-all group">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ borderColor: clr + '40', backgroundColor: bgClr }}>
