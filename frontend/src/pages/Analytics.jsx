@@ -43,7 +43,7 @@ export default function Analytics() {
         return (
             <div className="space-y-6 pt-6">
                 <div className="skeleton h-24 rounded-2xl" />
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-32 rounded-xl" />)}
                 </div>
                 <div className="grid lg:grid-cols-3 gap-6">
@@ -93,7 +93,7 @@ export default function Analytics() {
             </div>
 
             {/* ─── Metric Grid ────────────────────────────────── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     label="Volume"
                     value={predStats.total_predictions || 0}
