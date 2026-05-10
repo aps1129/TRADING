@@ -32,9 +32,15 @@ def fetch_stock_data(symbol: str, period: str = "6mo") -> dict:
         if hist.empty:
             return {"error": f"No data found for {symbol}"}
 
-        info = {}
+        # fast_info is a single lightweight HTTP call vs ticker.info which makes ~5 calls
+        market_cap = 0
+        pe_ratio = 0
+        sector_val = "N/A"
+        industry_val = "N/A"
+        long_name = symbol.upper()
         try:
-            info = ticker.info or {}
+            fi = ticker.fast_info
+            market_cap = getattr(fi, "market_cap", 0) or 0
         except Exception:
             pass
 
@@ -58,7 +64,7 @@ def fetch_stock_data(symbol: str, period: str = "6mo") -> dict:
         return {
             "symbol": symbol.upper(),
             "ticker": ticker_symbol,
-            "name": info.get("longName", info.get("shortName", symbol.upper())),
+            "name": long_name,
             "current_price": current_price,
             "previous_close": prev_close,
             "change": change,
@@ -66,10 +72,10 @@ def fetch_stock_data(symbol: str, period: str = "6mo") -> dict:
             "day_high": round(float(hist["High"].iloc[-1]), 2) if len(hist) > 0 else 0,
             "day_low": round(float(hist["Low"].iloc[-1]), 2) if len(hist) > 0 else 0,
             "volume": int(hist["Volume"].iloc[-1]) if len(hist) > 0 else 0,
-            "market_cap": info.get("marketCap", 0),
-            "pe_ratio": info.get("trailingPE", 0),
-            "sector": info.get("sector", "N/A"),
-            "industry": info.get("industry", "N/A"),
+            "market_cap": market_cap,
+            "pe_ratio": pe_ratio,
+            "sector": sector_val,
+            "industry": industry_val,
             "history": hist_data,
         }
 
